@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/Sidebar/app-sidebar";
-import { Navbar } from "@/components";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,22 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
-        <SidebarProvider>
-          <main className="flex flex-col w-full">
-            <div className="flex">
-              <AppSidebar />
-
-              <div className="flex flex-col w-full">
-                <Navbar />
-                <div className="w-full h-max overflow-auto overflow p-2 pb-5">
-                  {children}
-                </div>
-              </div>
-            </div>
-          </main>
-        </SidebarProvider>
-      </body>
+      <body className={`antialiased`}>{children}</body>
     </html>
   );
 }

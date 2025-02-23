@@ -1,9 +1,17 @@
+"use client";
+
 import { LoginForm } from "@/components";
 import Image from "next/image";
+import { motion } from "motion/react";
 
 export default function LoginPage() {
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ type: "spring" }}
+      className="grid min-h-svh lg:grid-cols-2"
+    >
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-sm">
@@ -20,6 +28,6 @@ export default function LoginPage() {
           height={1172}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
