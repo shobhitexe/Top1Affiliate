@@ -40,7 +40,7 @@ const navMain = [
   },
   {
     title: "Statistics",
-    url: "#",
+    url: "/statistics",
     icon: StatisticsIcon,
   },
   {

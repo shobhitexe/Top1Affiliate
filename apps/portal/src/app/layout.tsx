@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/app-sidebar";
-import { Input } from "@/components/ui/input";
-import { SearchIcon, User2 } from "lucide-react";
+import { Navbar } from "@/components";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -23,41 +18,18 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex sm:h-16 h-14 shrink-0 items-center gap-2 px-4 max-sm:border-b max-sm:bg-white sticky top-0">
-              <SidebarTrigger className="-ml-1 md:hidden flex" />
+          <main className="flex flex-col w-full">
+            <div className="flex">
+              <AppSidebar />
 
-              <div className="flex justify-between w-full">
-                <div className="flex sm:opacity-100 opacity-0 flex-col text-sm">
-                  <div className="text-xs">Hi Good Morning,</div>
-                  <div className="font-semibold">Kilian</div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="relative sm:flex hidden">
-                    <SearchIcon className="absolute top-1/2 -translate-y-1/2 left-2" />
-                    <Input
-                      className="w-fit h-10 bg-white pl-10"
-                      placeholder="Search..."
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {" "}
-                    <div className="bg-gray p-1 rounded-full">
-                      <User2 />
-                    </div>
-                    <div className="text-xs">
-                      <div>Killian</div>
-                      <div className="text-gray text-xs">#32648723</div>
-                    </div>
-                  </div>
+              <div className="flex flex-col w-full">
+                <Navbar />
+                <div className="w-full h-max overflow-auto overflow p-2 pb-5">
+                  {children}
                 </div>
               </div>
-            </header>
-            <main className="sm:px-5 px-3 sm:mt-3 mt-4">{children}</main>
-          </SidebarInset>
+            </div>
+          </main>
         </SidebarProvider>
       </body>
     </html>
