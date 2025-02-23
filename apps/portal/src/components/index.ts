@@ -10,6 +10,7 @@ import { leaderboardColumns } from "./Leaderboard/leaderboard-columns";
 import Navbar from "./Navbar";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import { DataTable } from "./ui/data-table";
+import LoadingSpinner from "./ui/loading";
 
 export {
   LoginForm,
@@ -24,4 +25,5 @@ export {
   leaderboardColumns,
   statisticsColumns,
   Navbar,
+  LoadingSpinner,
 };
