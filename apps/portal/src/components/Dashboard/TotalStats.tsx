@@ -35,7 +35,7 @@ function StatCard({
 }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm flex flex-col gap-1 p-3 w-full">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center sm:gap-2 gap-1">
         <Image
           src={icon}
           alt={title}
@@ -45,7 +45,7 @@ function StatCard({
         />
         <div className="text-gray text-sm font-semibold">{title}</div>
       </div>
-      <div className="font-semibold text-xl px-3">{value}</div>
+      <div className="text-lg px-3 font-redhat font-extrabold">{value}</div>
     </div>
   );
 }

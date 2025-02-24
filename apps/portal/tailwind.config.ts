@@ -25,6 +25,8 @@ export default {
       fontFamily: {
         helveticaMedium: "helvetica-medium",
         helveticaBold: "helvetica-bold",
+
+        redhat: ["Red Hat Display", "serif"],
       },
       colors: {
         main: "#00987C",

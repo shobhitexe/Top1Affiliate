@@ -1,3 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap');
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,6 +21,8 @@
 
 
 
+
+
 html,body {
   background: #F8F9FA;
   color: var(--background);
@@ -24,7 +30,6 @@ html,body {
   margin: 0;
   padding: 0;
   /* overflow-x: hidden; */
-
 }
 
 @layer base {

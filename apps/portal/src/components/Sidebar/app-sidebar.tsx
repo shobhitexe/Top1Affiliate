@@ -101,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         />
                       </div>
 
-                      <span className="text-gray font-semibold">
+                      <span className={`text-gray font-extrabold font-redhat`}>
                         {item.title}
                       </span>
                     </Link>

@@ -53,14 +53,14 @@ function StatCard({
       <div className="flex flex-col gap-1">
         <div className="text-gray text-sm font-semibold">{title}</div>
         <div className="flex items-end gap-2">
-          <div className="font-bold">
+          <div className="font-extrabold font-redhat">
             {title !== "Weekly Registrations" && "$"}
             {value.toLocaleString()}
           </div>
           <div
             className={`${
               change > 0 ? "text-[#48BB78]" : "text-[#E53E3E]"
-            } font-semibold`}
+            } font-extrabold`}
           >
             {change > 0 && "+"}
             {change}%
