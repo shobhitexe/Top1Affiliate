@@ -1,6 +1,7 @@
 import { SearchIcon, User2 } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Input } from "../ui/input";
+import Image from "next/image";
 
 export default function Navbar() {
   return (
@@ -13,7 +14,41 @@ export default function Navbar() {
           <div className="font-semibold">Kilian</div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center sm:gap-4 gap-2">
+          <div className="flex bg-[#152C28] sm:rounded-2xl rounded-lg sm:pl-5 pl-2 sm:h-10 h-8">
+            <div className="py-1 sm:pr-5 pr-2 flex sm:gap-2 gap-1 items-center">
+              <Image
+                src={"/images/wallet.svg"}
+                alt={"wallet"}
+                width={20}
+                height={20}
+                className="sm:hidden flex"
+              />
+
+              <div className="flex flex-col gap-0">
+                <div className="text-[#F5F5F5] text-xs sm:flex hidden relative top-1">
+                  Balance
+                </div>
+                <div className="text-[#20F6CA] sm:text-sm text-xs relative max-sm:top-px font-semibold leading-none">
+                  $178,682
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-walletGradient rounded-2xl px-6 gap-2 sm:flex hidden items-center">
+              <Image
+                src={"/images/wallet.svg"}
+                alt={"wallet"}
+                width={25}
+                height={25}
+              />
+
+              <span className="text-white relative top-px font-semibold text-sm">
+                Wallet
+              </span>
+            </div>
+          </div>
+
           <div className="relative sm:flex hidden">
             <SearchIcon className="absolute top-1/2 -translate-y-1/2 left-2" />
             <Input
@@ -27,7 +62,7 @@ export default function Navbar() {
             <div className="bg-gray p-1 rounded-full">
               <User2 />
             </div>
-            <div className="text-xs">
+            <div className="text-xs sm:flex flex-col hidden">
               <div>Killian</div>
               <div className="text-gray text-xs">#32648723</div>
             </div>

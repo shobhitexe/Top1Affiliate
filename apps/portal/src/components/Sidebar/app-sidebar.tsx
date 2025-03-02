@@ -23,48 +23,21 @@ import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import PayoutsIcon from "./Icons/payouts";
 import CommissionIcon from "./Icons/commission";
+import { AnimatePresence, motion } from "framer-motion";
 
 const navMain = [
-  {
-    title: "Home",
-    url: "/dashboard",
-    icon: HomeIcon,
-  },
-  {
-    title: "Leaderboard",
-    url: "/leaderboard",
-    icon: LeaderboardIcon,
-  },
-  {
-    title: "Incentives",
-    url: "#",
-    icon: CardIcon,
-  },
-  {
-    title: "Statistics",
-    url: "/statistics",
-    icon: StatisticsIcon,
-  },
+  { title: "Home", url: "/dashboard", icon: HomeIcon },
+  { title: "Leaderboard", url: "/leaderboard", icon: LeaderboardIcon },
+  { title: "Incentives", url: "#", icon: CardIcon },
+  { title: "Statistics", url: "/statistics", icon: StatisticsIcon },
   {
     title: "Weekly Commissions",
     url: "/weekly-commissions",
     icon: CommissionIcon,
   },
-  {
-    title: "Payouts",
-    url: "/payouts",
-    icon: PayoutsIcon,
-  },
-  {
-    title: "Sub-Affiliates",
-    url: "#",
-    icon: SubIcon,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: SettingsIcon,
-  },
+  { title: "Payouts", url: "/payouts", icon: PayoutsIcon },
+  { title: "Sub-Affiliates", url: "#", icon: SubIcon },
+  { title: "Settings", url: "#", icon: SettingsIcon },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -80,46 +53,65 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           height={34}
           className="py-3 mx-auto"
         />
-
         <div className="bg-gradient-to-r from-transparent via-[#E0E1E2] to-transparent w-full h-[2px]" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
-              {navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton className="h-14 px-4 rounded-2xl" asChild>
-                    <Link
-                      href={item.url}
-                      className={`flex items-center gap-2 ${
-                        item.url === pathname
-                          ? "bg-white shadow-md"
-                          : "bg-transparent"
-                      }`}
-                    >
-                      <div
-                        className={`${
-                          item.url === pathname
-                            ? "bg-sidebarBtnBg"
-                            : "bg-white shadow-sm"
-                        } rounded-2xl p-2`}
-                      >
-                        <item.icon
-                          fill={`${
-                            item.url === pathname ? "white" : "#00987C"
-                          }`}
-                          className="w-6 h-6"
-                        />
-                      </div>
+              {navMain.map((item) => {
+                const isActive = item.url === pathname;
 
-                      <span className={`text-gray font-extrabold font-redhat`}>
-                        {item.title}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      className="h-14 px-4 rounded-2xl"
+                      asChild
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-2 relative"
+                      >
+                        <AnimatePresence>
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeMenu"
+                              className="absolute inset-0 bg-white border shadow-md rounded-2xl"
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                            />
+                          )}
+                        </AnimatePresence>
+
+                        <motion.div
+                          initial={{ scale: 0.9, opacity: 0.8 }}
+                          animate={{ scale: isActive ? 1.1 : 1, opacity: 1 }}
+                          exit={{ scale: 0.9, opacity: 0.6 }}
+                          transition={{ duration: 0.3 }}
+                          className={`relative z-10 ${
+                            isActive ? "bg-sidebarBtnBg" : "bg-white shadow-md"
+                          } rounded-2xl p-2`}
+                        >
+                          <item.icon
+                            fill={isActive ? "white" : "#00987C"}
+                            className="w-6 h-6"
+                          />
+                        </motion.div>
+
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0.5 }}
+                          whileTap={{ scale: 0.95 }}
+                          transition={{ duration: 0.3 }}
+                          className="relative z-10 text-gray font-extrabold font-redhat"
+                        >
+                          {item.title}
+                        </motion.span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -131,7 +123,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="font-semibold">Need help?</div>
                 <div>Please check our docs</div>
               </div>
-
               <Button className="w-full" variant={"secondary"}>
                 Support
               </Button>

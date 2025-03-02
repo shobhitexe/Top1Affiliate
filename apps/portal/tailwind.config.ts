@@ -12,6 +12,9 @@ export default {
       backgroundImage: {
         sidebarBtnBg:
           "linear-gradient(144.13deg, #01A483 5.81%, #00404E 94.19%)",
+
+        walletGradient:
+          "linear-gradient(290.83deg, #005258 5.31%, #01A381 91.17%)",
       },
 
       screens: {

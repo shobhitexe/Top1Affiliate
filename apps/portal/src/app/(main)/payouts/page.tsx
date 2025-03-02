@@ -110,13 +110,13 @@ export default function Page() {
 
       <div className="w-full bg-[#E8E8E8] h-px" />
 
-      <div className="flex items-center justify-between">
-        <DatePickerWithRange className="w-fit" />
+      <div className="flex sm:flex-row flex-col gap-2 sm:items-center justify-between">
+        <DatePickerWithRange className="sm:w-fit w-full" />
 
         <div className="relative">
           <SearchIcon className="absolute top-1/2 -translate-y-1/2 left-2 w-5 h-5" />
           <Input
-            className="w-fit bg-white pl-8 h-9"
+            className="sm:w-fit w-full bg-white pl-8 h-9"
             placeholder="Search Transaction"
           />
         </div>
