@@ -88,7 +88,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           exit={{ scale: 0.9, opacity: 0.6 }}
                           transition={{ duration: 0.3 }}
                           className={`relative z-10 ${
-                            isActive ? "bg-sidebarBtnBg" : "bg-white shadow-md"
+                            isActive
+                              ? "bg-sidebarBtnBg border"
+                              : "bg-white shadow-md border"
                           } rounded-2xl p-2`}
                         >
                           <item.icon
