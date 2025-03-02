@@ -8,9 +8,11 @@ import TotalStats from "./Dashboard/TotalStats";
 import WeeklyStats from "./Dashboard/WeeklyStats";
 import { leaderboardColumns } from "./Leaderboard/leaderboard-columns";
 import Navbar from "./Navbar";
+import { payoutsColumn } from "./Payouts/payoutsColumn";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import { DataTable } from "./ui/data-table";
 import LoadingSpinner from "./ui/loading";
+import { weeklyCommissionColumn } from "./Weeklycommissions/commissionsColumns";
 
 export {
   LoginForm,
@@ -26,4 +28,6 @@ export {
   statisticsColumns,
   Navbar,
   LoadingSpinner,
+  payoutsColumn,
+  weeklyCommissionColumn,
 };

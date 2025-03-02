@@ -21,6 +21,8 @@ import SettingsIcon from "./Icons/settings";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
+import PayoutsIcon from "./Icons/payouts";
+import CommissionIcon from "./Icons/commission";
 
 const navMain = [
   {
@@ -42,6 +44,16 @@ const navMain = [
     title: "Statistics",
     url: "/statistics",
     icon: StatisticsIcon,
+  },
+  {
+    title: "Weekly Commissions",
+    url: "/weekly-commissions",
+    icon: CommissionIcon,
+  },
+  {
+    title: "Payouts",
+    url: "/payouts",
+    icon: PayoutsIcon,
   },
   {
     title: "Sub-Affiliates",
