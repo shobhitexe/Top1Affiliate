@@ -6,6 +6,13 @@ export const statisticsColumns: ColumnDef<unknown>[] = [
   {
     accessorKey: "crm_id",
     header: "CRM ID",
+    cell: ({ row }) => {
+      const id = row.getValue("crm_id") as string;
+
+      return (
+        <div className={`${id === "Totals" ? "font-semibold" : ""}`}>{id}</div>
+      );
+    },
   },
   {
     accessorKey: "first_name",

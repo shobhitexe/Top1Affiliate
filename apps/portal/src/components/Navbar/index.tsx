@@ -15,7 +15,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center sm:gap-4 gap-2">
-          <div className="flex bg-[#152C28] sm:rounded-2xl rounded-lg sm:pl-5 pl-2 sm:h-10 h-8">
+          <div className="sm:flex hidden bg-[#152C28] sm:rounded-2xl rounded-lg sm:pl-5 pl-2 sm:h-10 h-8">
             <div className="py-1 sm:pr-5 pr-2 flex sm:gap-2 gap-1 items-center">
               <Image
                 src={"/images/wallet.svg"}
@@ -65,6 +65,14 @@ export default function Navbar() {
             <div className="text-xs sm:flex flex-col hidden">
               <div>Killian</div>
               <div className="text-gray text-xs">#32648723</div>
+            </div>
+            <div className="sm:hidden flex flex-col gap-0">
+              <div className="text-[#686868] text-xs relative top-px">
+                Balance
+              </div>
+              <div className="text-[#015C5D] sm:text-sm text-xs relative max-sm:top-px font-semibold leading-none">
+                $178,682
+              </div>
             </div>
           </div>
         </div>

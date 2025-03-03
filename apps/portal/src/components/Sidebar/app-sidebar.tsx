@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         >
                           <item.icon
                             fill={isActive ? "white" : "#00987C"}
-                            className="w-6 h-6"
+                            className="w-5 h-5"
                           />
                         </motion.div>
 

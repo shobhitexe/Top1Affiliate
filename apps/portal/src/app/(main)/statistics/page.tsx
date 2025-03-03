@@ -144,6 +144,17 @@ const data = [
     net_deposit: "$58,642",
     commissions: "$58,642",
   },
+  {
+    crm_id: "Totals",
+    first_name: "",
+    last_name: "",
+    registration_date: "",
+    country: "",
+    deposits: "$1,965,148",
+    withdrawals: "$3,665,148",
+    net_deposit: "$4,465,148",
+    commissions: "$6,712,148",
+  },
 ];
 
 export default function page() {
