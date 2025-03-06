@@ -9,6 +9,7 @@ import WeeklyStats from "./Dashboard/WeeklyStats";
 import { leaderboardColumns } from "./Leaderboard/leaderboard-columns";
 import Navbar from "./Navbar";
 import { payoutsColumn } from "./Payouts/payoutsColumn";
+import { SessionProviders } from "./Providers/providers";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import { DataTable } from "./ui/data-table";
 import LoadingSpinner from "./ui/loading";
@@ -30,4 +31,5 @@ export {
   LoadingSpinner,
   payoutsColumn,
   weeklyCommissionColumn,
+  SessionProviders,
 };

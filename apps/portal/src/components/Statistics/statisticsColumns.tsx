@@ -4,27 +4,32 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const statisticsColumns: ColumnDef<unknown>[] = [
   {
-    accessorKey: "crm_id",
+    accessorKey: "affiliateId",
     header: "CRM ID",
     cell: ({ row }) => {
-      const id = row.getValue("crm_id") as string;
+      const id = row.getValue("affiliateId") as string;
 
       return (
-        <div className={`${id === "Totals" ? "font-semibold" : ""}`}>{id}</div>
+        <div className={`${id === "Totals" ? "font-semibold" : ""}`}>#{id}</div>
       );
     },
   },
   {
-    accessorKey: "first_name",
+    accessorKey: "firstName",
     header: "FIRST NAME",
   },
   {
-    accessorKey: "last_name",
+    accessorKey: "lastName",
     header: "LAST NAME",
   },
   {
-    accessorKey: "registration_date",
+    accessorKey: "registrationDate",
     header: "REGISTRATION DATE",
+    cell: ({ row }) => {
+      const createdAt = row.getValue("registrationDate") as string;
+
+      return <div>{new Date(createdAt).toDateString()}</div>;
+    },
   },
   {
     accessorKey: "country",
