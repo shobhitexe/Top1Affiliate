@@ -18,16 +18,6 @@ func NewCronScheduler(store store.DataStore) *Cron {
 func (c *Cron) StartCron(ctx context.Context) {
 
 	go func() {
-		cookie, err := c.LoginToAPI()
-
-		if err != nil {
-			return
-		}
-
-		c.FetchAndSaveLeads(ctx, cookie)
-	}()
-
-	go func() {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 
