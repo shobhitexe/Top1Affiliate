@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
 )
 
 CREATE TABLE IF NOT EXISTS leads (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     first_name TEXT,
     last_name TEXT,
     updated TIMESTAMP,
