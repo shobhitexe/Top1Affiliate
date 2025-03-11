@@ -7,88 +7,67 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 	"top1affiliate/internal/models"
 )
 
+const apiURL = "https://publicapi.fxlvls.com/management/leads"
+
 func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie string) error {
 	client := &http.Client{}
-	startDate := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2025, 2, 2, 0, 0, 0, 0, time.UTC)
+	limit := 100
+	minRegistrationDate := "2020-01-01 00:00" // Start from an old date
 
-	var wg sync.WaitGroup
-	concurrentRequests := make(chan struct{}, 5) // Limit concurrency to 5 requests at a time
+	for {
+		// Build the API request URL with pagination
+		url := fmt.Sprintf("%s?limit=%d&minRegistrationDate=%s", apiURL, limit, minRegistrationDate)
 
-	// Process data in 6-month chunks
-	for date := startDate; date.Before(endDate); date = date.AddDate(0, 6, 0) {
-		minDate := date // Capture loop variable to prevent Goroutine issues
-		maxDate := minDate.AddDate(0, 6, 0)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return err
+		}
 
-		wg.Add(1)
-		concurrentRequests <- struct{}{}
+		req.Header.Add("Cookie", cookie)
 
-		go func(minDate, maxDate time.Time) {
-			defer wg.Done()
-			defer func() { <-concurrentRequests }() // Release slot
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
 
-			log.Printf("Starting fetch for %s to %s", minDate.Format("2006-01-02"), maxDate.Format("2006-01-02"))
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
 
-			page := 1
-			for {
-				apiURL := fmt.Sprintf(
-					"https://publicapi.fxlvls.com/management/leads?limit=100&page=%d&minUpdated=%s&maxUpdated=%s",
-					page,
-					minDate.Format("2006-01-02 15:04"),
-					maxDate.Format("2006-01-02 15:04"),
-				)
+		var responseData []models.Leads
+		if err := json.Unmarshal(body, &responseData); err != nil {
+			log.Println("Error decoding response:", err)
+			return err
+		}
 
-				req, err := http.NewRequest("GET", apiURL, nil)
-				if err != nil {
-					log.Println("Error creating request:", err)
-					return
-				}
+		// Stop if no more data is returned
+		if len(responseData) == 0 {
+			log.Println("No more leads to fetch.")
+			break
+		}
 
-				req.Header.Add("Cookie", cookie)
-				resp, err := client.Do(req)
-				if err != nil {
-					log.Println("Error making request:", err)
-					return
-				}
-				defer resp.Body.Close()
-
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					log.Println("Error reading response body:", err)
-					return
-				}
-
-				var responseData []models.Leads
-				if err := json.Unmarshal(body, &responseData); err != nil {
-					log.Println("Error unmarshalling JSON:", err)
-					return
-				}
-
-				// Stop pagination if no more data
-				if len(responseData) == 0 {
-					log.Printf("No more leads for %s to %s at page %d", minDate.Format("2006-01-02"), maxDate.Format("2006-01-02"), page)
-					break
-				}
-
-				// Save data concurrently
-				for _, data := range responseData {
-					if err := c.store.SaveLeadsData(ctx, data); err != nil {
-						log.Println("Error saving data:", err)
-						return
-					}
-				}
-
-				log.Printf("Fetched and saved leads from %s to %s, page %d", minDate.Format("2006-01-02"), maxDate.Format("2006-01-02"), page)
-				page++
+		// Save the fetched leads
+		for _, lead := range responseData {
+			if err := c.store.SaveLeadsData(ctx, lead); err != nil {
+				log.Println("Error saving lead:", err)
+				return err
 			}
-		}(minDate, maxDate) // Pass dates as arguments to avoid Goroutine loop issues
+		}
+
+		// Update minRegistrationDate for next batch
+		lastLead := responseData[len(responseData)-1]
+		minRegistrationDate = lastLead.RegistrationDate // Assuming RegistrationDate field exists
+		log.Printf("Fetched %d leads, next minRegistrationDate: %s", len(responseData), minRegistrationDate)
+
+		// Optional: Add a small delay to avoid hitting rate limits
+		time.Sleep(1 * time.Second)
 	}
 
-	wg.Wait() // Wait for all Goroutines to finish
 	return nil
 }
