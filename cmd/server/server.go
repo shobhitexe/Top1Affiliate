@@ -41,6 +41,11 @@ func (s *APIServer) mount() http.Handler {
 
 	container := di.NewContainer(s.db)
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Alive"))
+	})
+
 	r.Route("/api/v1", func(r chi.Router) {
 		routes.RegisterDataRoutes(r, container.DataHandler)
 		routes.RegisterUserRoutes(r, container.UserHandler)
