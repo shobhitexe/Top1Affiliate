@@ -3,7 +3,7 @@ import NextAuth from "next-auth";
 
 type sessionUser = {
   id?: string;
-  cookie?: string;
+  affiliateId?: string;
 
   name?: string | null | undefined;
   email?: string | null | undefined;

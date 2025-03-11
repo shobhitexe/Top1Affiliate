@@ -42,11 +42,11 @@ export function LoginForm({
       </div>
       <div className="grid gap-6">
         <div className="grid gap-2">
-          <Label htmlFor="login">Username</Label>
+          <Label htmlFor="login">Affiliate ID</Label>
           <Input
             id="login"
             type="login"
-            placeholder="Username"
+            placeholder="ID"
             required
             value={login}
             onChange={(e) => setLogin(e.target.value)}

@@ -24,6 +24,7 @@ import { Button } from "../ui/button";
 import PayoutsIcon from "./Icons/payouts";
 import CommissionIcon from "./Icons/commission";
 import { AnimatePresence, motion } from "framer-motion";
+import { signOut } from "next-auth/react";
 
 const navMain = [
   { title: "Home", url: "/dashboard", icon: HomeIcon },
@@ -125,7 +126,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="font-semibold">Need help?</div>
                 <div>Please check our docs</div>
               </div>
-              <Button className="w-full" variant={"secondary"}>
+              <Button
+                className="w-full"
+                variant={"secondary"}
+                onClick={() => signOut()}
+              >
                 Support
               </Button>
             </div>

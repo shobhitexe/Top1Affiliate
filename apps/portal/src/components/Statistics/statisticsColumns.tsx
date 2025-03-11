@@ -25,11 +25,6 @@ export const statisticsColumns: ColumnDef<unknown>[] = [
   {
     accessorKey: "registrationDate",
     header: "REGISTRATION DATE",
-    cell: ({ row }) => {
-      const createdAt = row.getValue("registrationDate") as string;
-
-      return <div>{new Date(createdAt).toDateString()}</div>;
-    },
   },
   {
     accessorKey: "country",

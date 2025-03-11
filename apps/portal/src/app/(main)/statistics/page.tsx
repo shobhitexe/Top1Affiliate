@@ -1,21 +1,22 @@
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import { DataTable, statisticsColumns } from "@/components";
+import { BackendURL } from "@/config/env";
 import { Leads } from "@/types";
 import { getServerSession } from "next-auth";
 
-async function GetLeads(cookie: string) {
+async function GetLeads(affiliateId: string) {
   try {
     const res = await fetch(
-      `https://publicapi.fxlvls.com/management/leads?limit=50&minRegistrationDate=2020-01-01`,
+      `${BackendURL}/api/v1/data/statistics?affiliateId=${affiliateId}`,
+      // `https://publicapi.fxlvls.com/management/leads?limit=50&minRegistrationDate=2020-01-01`,
       {
         method: "GET",
-        headers: { Cookie: cookie },
       }
     );
 
     const data = await res.json();
 
-    return data;
+    return data.data || [];
   } catch (error) {
     console.log(error);
 
@@ -26,7 +27,7 @@ async function GetLeads(cookie: string) {
 export default async function page() {
   const session = await getServerSession(options);
 
-  const leads: Leads[] = await GetLeads(session?.user.cookie || "");
+  const leads: Leads[] = await GetLeads(session?.user.affiliateId || "");
 
   return (
     <div className="flex flex-col sm:gap-4 gap-2 bg-white p-5 shadow-sm rounded-2xl">

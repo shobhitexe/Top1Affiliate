@@ -15,7 +15,7 @@ export default async function Navbar() {
       <div className="flex justify-between w-full">
         <div className="flex sm:opacity-100 opacity-0 flex-col text-sm">
           <div className="text-xs">Hi Good Morning,</div>
-          <div className="font-semibold">{session?.user.id}</div>
+          <div className="font-semibold">{session?.user.name}</div>
         </div>
 
         <div className="flex items-center sm:gap-4 gap-2">
@@ -67,8 +67,10 @@ export default async function Navbar() {
               <User2 />
             </div>
             <div className="text-xs sm:flex flex-col hidden">
-              <div>{session?.user.id}</div>
-              <div className="text-gray text-xs">#32648723</div>
+              <div>{session?.user.name}</div>
+              <div className="text-gray text-xs">
+                #{session?.user.affiliateId}
+              </div>
             </div>
             <div className="sm:hidden flex flex-col gap-0">
               <div className="text-[#686868] text-xs relative top-px">
