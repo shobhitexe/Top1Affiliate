@@ -13,7 +13,53 @@ import (
 
 const apiURL = "https://publicapi.fxlvls.com/management/leads"
 
-func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie string) error {
+func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate string) error {
+	client := &http.Client{}
+	limit := 100
+
+	url := fmt.Sprintf("https://publicapi.fxlvls.com/management/leads?limit=%d&minRegistrationDate=%s&maxRegistrationDate=%s", limit, minDate, maxDate)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Cookie", cookie)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var responseData []models.Leads
+	if err := json.Unmarshal(body, &responseData); err != nil {
+		log.Println("Error decoding response:", err)
+		return err
+	}
+
+	if len(responseData) == 0 {
+		log.Println("No new leads found.")
+		return nil
+	}
+
+	for _, lead := range responseData {
+		if err := c.store.SaveLeadsData(ctx, lead); err != nil {
+			log.Println("Error saving lead:", err)
+			return err
+		}
+	}
+
+	log.Printf("Fetched %d leads between %s and %s", len(responseData), minDate, maxDate)
+	return nil
+}
+
+func (c *Cron) FetchAndSaveLeadsHistory(ctx context.Context, cookie string) error {
 	client := &http.Client{}
 	limit := 100
 	minRegistrationDate := "2020-01-01 00:00" // Start from an old date

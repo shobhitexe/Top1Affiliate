@@ -18,28 +18,33 @@ func NewCronScheduler(store store.DataStore) *Cron {
 func (c *Cron) StartCron(ctx context.Context) {
 
 	go func() {
-		ticker := time.NewTicker(5 * time.Second)
+		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
 
 		for {
 			select {
 			case <-ticker.C:
+				taskCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+				defer cancel()
 
-				// taskCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-				// defer cancel()
+				cookie, err := c.LoginToAPI()
+				if err != nil {
+					log.Println("Error logging in to API:", err)
+					continue
+				}
 
-				// cookie, err := c.LoginToAPI()
+				currentTime := time.Now().UTC()
+				lastHour := currentTime.Add(-1 * time.Hour).Format("2006-01-02 15:04")
 
-				// if err != nil {
-				// 	return
-				// }
+				log.Println("Fetching leads from:", lastHour, "to:", currentTime.Format("2006-01-02 15:04"))
 
-				// c.FetchAndSaveLeads(ctx, cookie)
+				if err := c.FetchAndSaveLeads(taskCtx, cookie, lastHour, currentTime.Format("2006-01-02 15:04")); err != nil {
+					log.Println("Error fetching new leads:", err)
+				}
 
 			case <-ctx.Done():
-				log.Println("Stopping 120-second cron tasks...")
+				log.Println("Stopping hourly cron tasks...")
 				return
-
 			}
 		}
 	}()
