@@ -23,7 +23,7 @@ func (c *Cron) FetchAndSaveTransactionsHistory(ctx context.Context, cookie strin
 		offset := 0
 
 		for {
-			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s&transactionType=Deposit&offset=%d", limit, e.Email, offset)
+			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s&transactionType=Withdrawal&offset=%d", limit, e.Email, offset)
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
