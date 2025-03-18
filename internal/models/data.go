@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Leads struct {
 	ID                   int    `json:"id"`
 	FirstName            string `json:"firstName"`
@@ -46,4 +48,15 @@ type Leads struct {
 	OfferDescription     string `json:"offerDescription"`
 	IPAddress            string `json:"ipAddress"`
 	LandingPage          string `json:"landingPage"`
+}
+
+type Transaction struct {
+	TransactionID      int       `json:"transactionId"`
+	Amount             float64   `json:"amount"`
+	TransactionType    string    `json:"transactionType"`
+	TransactionSubType string    `json:"transactionSubType"`
+	Status             string    `json:"status"`
+	TransactionDate    time.Time `json:"transactionDate"`
+	LeadID             int       `json:"leadId"`
+	LeadGUID           string    `json:"leadGuid"`
 }

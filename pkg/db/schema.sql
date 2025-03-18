@@ -54,3 +54,16 @@ CREATE TABLE IF NOT EXISTS leads (
     ip_address TEXT,
     landing_page TEXT
 );
+
+
+
+CREATE TABLE IF NOT EXISTS transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    amount NUMERIC(18,8) NOT NULL,
+    transaction_type VARCHAR(50) NOT NULL,
+    transaction_sub_type VARCHAR(50),
+    status VARCHAR(20) NOT NULL,
+    transaction_date TIMESTAMP NOT NULL,
+    lead_id INT NOT NULL,
+    lead_guid UUID NOT NULL
+);

@@ -11,3 +11,8 @@ type LoginRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
+
+type LeadsEmails struct {
+	AffiliateID string
+	Email       string
+}

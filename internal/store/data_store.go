@@ -12,6 +12,8 @@ import (
 type DataStore interface {
 	SaveLeadsData(ctx context.Context, lead models.Leads) error
 	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
+	GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error)
+	GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error)
 }
 
 type dataStore struct {
@@ -141,4 +143,69 @@ func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Lead
 	}
 
 	return leads, nil
+}
+
+func (s *dataStore) GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error) {
+
+	var emails []models.LeadsEmails
+
+	query := `SELECT u.affiliate_id, l.email FROM users u
+LEFT JOIN leads l ON l.affiliate_id = u.affiliate_id`
+
+	rows, err := s.db.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var email models.LeadsEmails
+
+		if err := rows.Scan(&email.AffiliateID, &email.Email); err != nil {
+			return nil, err
+		}
+
+		emails = append(emails, email)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return emails, nil
+
+}
+
+func (s *dataStore) GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error) {
+
+	var emails []models.LeadsEmails
+
+	query := `SELECT affiliate_id, email FROM leads WHERE affiliate_id != ''`
+
+	rows, err := s.db.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var email models.LeadsEmails
+
+		if err := rows.Scan(&email.AffiliateID, &email.Email); err != nil {
+			return nil, err
+		}
+
+		emails = append(emails, email)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return emails, nil
+
 }

@@ -11,8 +11,6 @@ import (
 	"top1affiliate/internal/models"
 )
 
-const apiURL = "https://publicapi.fxlvls.com/management/leads"
-
 func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate string) error {
 	client := &http.Client{}
 	limit := 100
@@ -58,6 +56,8 @@ func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate s
 	log.Printf("Fetched %d leads between %s and %s", len(responseData), minDate, maxDate)
 	return nil
 }
+
+const apiURL = "https://publicapi.fxlvls.com/management/leads"
 
 func (c *Cron) FetchAndSaveLeadsHistory(ctx context.Context, cookie string) error {
 	client := &http.Client{}
