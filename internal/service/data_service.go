@@ -6,12 +6,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"top1affiliate/internal/models"
 	"top1affiliate/internal/store"
 )
 
 type DataService interface {
 	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
+	GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error)
+	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 }
 
 type dataService struct {
@@ -76,5 +79,74 @@ func (s *dataService) FetchAndSaveLeads(cookie string, username string) error {
 	}
 
 	return nil
+
+}
+
+func (s *dataService) GetweeklyStats(ctx context.Context, id string) (*models.Stats, error) {
+
+	d, err := s.store.GetweeklyStats(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return d, err
+
+}
+
+func (s *dataService) GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error) {
+
+	var weekly, monthly *models.Stats
+	var weeklyErr, monthlyErr error
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		weekly, weeklyErr = s.store.GetweeklyStats(ctx, id)
+	}()
+
+	go func() {
+		defer wg.Done()
+		monthly, monthlyErr = s.store.GetMonthlyStats(ctx, id)
+	}()
+
+	wg.Wait()
+
+	if weeklyErr != nil {
+		return nil, weeklyErr
+	}
+
+	if monthlyErr != nil {
+		return nil, monthlyErr
+	}
+
+	stats := models.WeeklyStatsWithMonthly{
+		Registrations: weekly.Registrations,
+		Deposits:      weekly.Deposits,
+		Withdrawals:   weekly.Withdrawals,
+		Commissions:   weekly.Commissions,
+
+		RegistrationsMonthly: monthly.Registrations,
+		DepositsMonthly:      monthly.Deposits,
+		WithdrawalsMonthly:   monthly.Withdrawals,
+		CommissionsMonthly:   monthly.Commissions,
+	}
+
+	return &stats, nil
+
+}
+
+func (s *dataService) GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error) {
+
+	txn, err := s.store.GetTransactions(ctx, id, from, to)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return txn, err
 
 }

@@ -16,6 +16,11 @@ type DataStore interface {
 	GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error)
 	GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error)
 	SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
+
+	GetweeklyStats(ctx context.Context, id string) (*models.Stats, error)
+	GetMonthlyStats(ctx context.Context, id string) (*models.Stats, error)
+
+	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 }
 
 type dataStore struct {
@@ -254,4 +259,145 @@ func (s *dataStore) SaveTransactions(ctx context.Context, transactions []models.
 	}
 
 	return nil
+}
+
+func (s *dataStore) GetweeklyStats(ctx context.Context, id string) (*models.Stats, error) {
+
+	var stats models.Stats
+
+	query := `WITH transaction_stats AS (
+    SELECT 
+        t.affiliate_id,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+    FROM transactions t
+    LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
+    WHERE t.affiliate_id = $1 AND t.status = 'Complete'
+    AND t.transaction_date >= date_trunc('week', NOW())::DATE
+    GROUP BY t.affiliate_id
+),
+lead_stats AS (
+    SELECT 
+        l.affiliate_id, 
+        COUNT(l.id) AS lead_count
+    FROM leads l
+    WHERE l.affiliate_id = $1
+    AND l.registration_date >= date_trunc('week', NOW())::DATE
+    GROUP BY l.affiliate_id
+)
+
+SELECT 
+    COALESCE(ls.lead_count, 0) AS lead_count,
+    COALESCE(ts.total_deposits, 0) AS total_deposits,
+    COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
+    COALESCE(ts.total_commissions, 0) AS total_commissions
+FROM transaction_stats ts
+FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
+`
+
+	if err := s.db.QueryRow(ctx, query, id).Scan(
+		&stats.Registrations,
+		&stats.Deposits,
+		&stats.Withdrawals,
+		&stats.Commissions,
+	); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &stats, nil
+
+}
+
+func (s *dataStore) GetMonthlyStats(ctx context.Context, id string) (*models.Stats, error) {
+
+	var stats models.Stats
+
+	query := `WITH transaction_stats AS (
+    SELECT 
+        t.affiliate_id,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+    FROM transactions t
+    LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
+    WHERE t.affiliate_id = $1 AND t.status = 'Complete'
+    AND t.transaction_date >= date_trunc('month', NOW())::DATE
+    GROUP BY t.affiliate_id
+),
+lead_stats AS (
+    SELECT 
+        l.affiliate_id, 
+        COUNT(l.id) AS lead_count
+    FROM leads l
+    WHERE l.affiliate_id = $1
+    AND l.registration_date >= date_trunc('month', NOW())::DATE
+    GROUP BY l.affiliate_id
+)
+
+SELECT 
+    COALESCE(ls.lead_count, 0) AS lead_count,
+    COALESCE(ts.total_deposits, 0) AS total_deposits,
+    COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
+    COALESCE(ts.total_commissions, 0) AS total_commissions
+FROM transaction_stats ts
+FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
+`
+
+	if err := s.db.QueryRow(ctx, query, id).Scan(
+		&stats.Registrations,
+		&stats.Deposits,
+		&stats.Withdrawals,
+		&stats.Commissions,
+	); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &stats, nil
+
+}
+
+func (s *dataStore) GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error) {
+
+	var txns []models.CommissionTxn
+
+	query := `SELECT t.lead_id, l.first_name, l.country, t.email, 
+	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, ROUND((t.amount * (u.commission * 1.0 / 100)),2) AS commission, t.transaction_type 
+FROM transactions t
+LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
+LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
+WHERE t.affiliate_id = $1
+AND t.status = 'Complete'
+AND t.transaction_date BETWEEN $2 AND $3
+ORDER BY t.transaction_date DESC`
+
+	rows, err := s.db.Query(ctx, query, id, from, to)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var txn models.CommissionTxn
+
+		if err := rows.Scan(
+			&txn.LeadID,
+			&txn.Name,
+			&txn.Country,
+			&txn.Email,
+			&txn.Date,
+			&txn.Amount,
+			&txn.TxnType,
+		); err != nil {
+			return nil, err
+		}
+
+		txns = append(txns, txn)
+	}
+
+	return txns, nil
 }

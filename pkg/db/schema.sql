@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT,
     affiliate_id TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    commission INT NOT NULL DEFAULT 0
 )
 
 CREATE TABLE IF NOT EXISTS leads (

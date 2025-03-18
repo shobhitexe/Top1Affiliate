@@ -58,3 +58,32 @@ type Transaction struct {
 	LeadID             int     `json:"leadId"`
 	LeadGUID           string  `json:"leadGuid"`
 }
+
+type Stats struct {
+	Registrations int     `json:"registrations"`
+	Deposits      float64 `json:"deposits"`
+	Withdrawals   float64 `json:"withdrawals"`
+	Commissions   float64 `json:"commission"`
+}
+
+type WeeklyStatsWithMonthly struct {
+	Registrations int     `json:"registrations"`
+	Deposits      float64 `json:"deposits"`
+	Withdrawals   float64 `json:"withdrawals"`
+	Commissions   float64 `json:"commission"`
+
+	RegistrationsMonthly int     `json:"registrationsMonthly"`
+	DepositsMonthly      float64 `json:"depositsMonthly"`
+	WithdrawalsMonthly   float64 `json:"withdrawalsMonthly"`
+	CommissionsMonthly   float64 `json:"commissionMonthly"`
+}
+
+type CommissionTxn struct {
+	LeadID  string  `json:"id"`
+	Name    string  `json:"name"`
+	Country string  `json:"country"`
+	Email   string  `json:"email"`
+	Date    string  `json:"date"`
+	Amount  float64 `json:"amount"`
+	TxnType string  `json:"txnType"`
+}

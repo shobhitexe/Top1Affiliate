@@ -4,15 +4,15 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const weeklyCommissionColumn: ColumnDef<unknown>[] = [
   {
-    accessorKey: "crm_id",
-    header: "CRM ID",
+    accessorKey: "id",
+    header: "ID",
   },
   {
-    accessorKey: "full_name",
+    accessorKey: "name",
     header: "FULL NAME",
   },
   {
-    accessorKey: "transaction_date",
+    accessorKey: "date",
     header: "TRANSACTION DATE",
   },
   {
@@ -20,31 +20,31 @@ export const weeklyCommissionColumn: ColumnDef<unknown>[] = [
     header: "COUNTRY",
   },
   {
-    accessorKey: "commission_amount",
+    accessorKey: "amount",
     header: "COMMISSION AMOUNT",
     cell: ({ row }) => {
-      const commission = row.getValue("commission_amount") as number;
+      const commission = row.getValue("amount") as number;
 
       return (
         <div className="text-white bg-[#7B7B7B] max-w-[80px] flex justify-center rounded-lg w-full py-0.5 px-5">
-          {commission}
+          ${commission}
         </div>
       );
     },
   },
   {
-    accessorKey: "transaction_type",
+    accessorKey: "txnType",
     header: "TRANSACTION TYPE",
     cell: ({ row }) => {
-      const type = row.getValue("transaction_type") as string;
+      const type = row.getValue("txnType") as string;
 
       let bg;
 
       switch (type) {
-        case "DEPOSIT":
+        case "Deposit":
           bg = "bg-[#51A796]";
           break;
-        case "WITHDRAWAL":
+        case "Withdrawal":
           bg = "bg-[#C65D5D]";
           break;
       }

@@ -4,6 +4,7 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -15,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "./button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -29,6 +31,7 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
@@ -75,6 +78,56 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+
+      <div className="flex items-center justify-between py-5">
+        <div className="relative flex items-center justify-between">
+          <select
+            name="pagination"
+            id="pagination"
+            size={1}
+            className="space-x-2 cursor-pointer p-2 rounded-lg bg-white border border-gray-300 appearance-none pr-8"
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
+          >
+            <option value="10" className="cursor-pointer">
+              10
+            </option>
+            <option value="20" className="cursor-pointer">
+              20
+            </option>
+            <option value="40" className="cursor-pointer">
+              40
+            </option>
+            <option value="50" className="cursor-pointer">
+              50
+            </option>
+          </select>
+          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            ▼
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end space-x-2 gap-2 self-end">
+          <Button
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            size={"icon"}
+            className="cursor-pointer"
+          >
+            {"<"}
+          </Button>
+          <div>
+            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+          </div>
+          <Button
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            size={"icon"}
+            className="cursor-pointer"
+          >
+            {">"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
