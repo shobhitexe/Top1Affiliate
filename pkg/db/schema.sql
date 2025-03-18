@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT,
-    affiliate_id TEXT NOT NULL,
+    affiliate_id TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
 )
 
@@ -58,12 +58,15 @@ CREATE TABLE IF NOT EXISTS leads (
 
 
 CREATE TABLE IF NOT EXISTS transactions (
-    transaction_id SERIAL PRIMARY KEY,
+    transaction_id INT PRIMARY KEY,
     amount NUMERIC(18,8) NOT NULL,
     transaction_type VARCHAR(50) NOT NULL,
     transaction_sub_type VARCHAR(50),
     status VARCHAR(20) NOT NULL,
     transaction_date TIMESTAMP NOT NULL,
     lead_id INT NOT NULL,
-    lead_guid UUID NOT NULL
+    lead_guid UUID NOT NULL,
+    affiliate_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    -- CONSTRAINT fk_affiliate_id FOREIGN KEY (affiliate_id) REFERENCES users(affiliate_id) ON DELETE SET NULL
 );

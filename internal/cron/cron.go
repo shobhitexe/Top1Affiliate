@@ -64,7 +64,7 @@ func (c *Cron) StartCron(ctx context.Context) {
 		taskCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 		defer cancel()
 
-		if err := c.FetchAndSaveTransactionsOld(taskCtx, cookie); err != nil {
+		if err := c.FetchAndSaveTransactionsHistory(taskCtx, cookie); err != nil {
 			log.Println("Error fetching new txns:", err)
 		}
 	}()

@@ -6,6 +6,7 @@ import (
 	"time"
 	"top1affiliate/internal/models"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,6 +15,7 @@ type DataStore interface {
 	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
 	GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error)
 	GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error)
+	SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
 }
 
 type dataStore struct {
@@ -208,4 +210,48 @@ func (s *dataStore) GetAllEmails(ctx context.Context) ([]models.LeadsEmails, err
 
 	return emails, nil
 
+}
+
+func (s *dataStore) SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error {
+	if len(transactions) == 0 {
+		return nil
+	}
+
+	batch := &pgx.Batch{}
+
+	query := `INSERT INTO transactions (
+		transaction_id, amount, transaction_type, transaction_sub_type, status, 
+		transaction_date, lead_id, lead_guid, affiliate_id, email
+	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	ON CONFLICT (transaction_id) DO NOTHING;`
+
+	// Add each transaction to the batch
+	for _, txn := range transactions {
+		batch.Queue(query,
+			txn.TransactionID,
+			txn.Amount,
+			txn.TransactionType,
+			txn.TransactionSubType,
+			txn.Status,
+			txn.TransactionDate,
+			txn.LeadID,
+			txn.LeadGUID,
+			affiliateId,
+			email,
+		)
+	}
+
+	// Send the batch insert request
+	br := s.db.SendBatch(ctx, batch)
+	defer br.Close()
+
+	// Process results
+	for range transactions {
+		_, err := br.Exec()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
