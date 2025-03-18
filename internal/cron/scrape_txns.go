@@ -21,7 +21,7 @@ func (c *Cron) FetchAndSaveTransactionsOld(ctx context.Context, cookie string) e
 		client := &http.Client{}
 		limit := 100
 
-		url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s", limit, e)
+		url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s", limit, e.Email)
 
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
