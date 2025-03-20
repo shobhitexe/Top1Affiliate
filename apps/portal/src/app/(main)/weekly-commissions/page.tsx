@@ -6,28 +6,7 @@ import { SearchIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { Fragment } from "react";
 import DateFilter from "./DateFilter";
-
-type CommissionTxn = {
-  id: string;
-  name: string;
-  country: string;
-  email: string;
-  date: string;
-  amount: number;
-  txnType: string;
-};
-
-type StatsData = {
-  registrations: number;
-  deposits: number;
-  withdrawals: number;
-  commission: number;
-
-  registrationsMonthly: number;
-  depositsMonthly: number;
-  withdrawalsMonthly: number;
-  commissionMonthly: number;
-};
+import { CommissionTxn, StatsData } from "@/types";
 
 async function GetWeeklyStats(id: string) {
   try {

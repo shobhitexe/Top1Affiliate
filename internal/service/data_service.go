@@ -15,6 +15,7 @@ type DataService interface {
 	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
 	GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error)
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
+	GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error)
 }
 
 type dataService struct {
@@ -149,4 +150,40 @@ func (s *dataService) GetTransactions(ctx context.Context, id, from, to string) 
 
 	return txn, err
 
+}
+
+func (s *dataService) GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error) {
+
+	var weekly *models.Stats
+	var weeklyErr error
+
+	var txns []models.CommissionTxn
+	var txnErr error
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		weekly, weeklyErr = s.store.GetweeklyStats(ctx, id)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		txns, txnErr = s.store.GetLatestFiveTransactions(ctx, id)
+	}()
+
+	wg.Wait()
+
+	if weeklyErr != nil {
+		log.Println(weeklyErr)
+		return nil, weeklyErr
+	}
+
+	if txnErr != nil {
+		return nil, txnErr
+	}
+
+	return &models.DashboardStats{Weekly: *weekly, Commissions: txns}, nil
 }

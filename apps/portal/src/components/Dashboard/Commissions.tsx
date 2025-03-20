@@ -1,45 +1,18 @@
+import { CommissionTxn } from "@/types";
 import Image from "next/image";
 
-const commissions = [
-  {
-    name: "Thomas Dany",
-    time: "27 March 2020, at 12:30 PM",
-    status: "sent",
-    amount: 2982,
-  },
-  {
-    name: "Mary S",
-    time: "27 March 2020, at 12:30 PM",
-    status: "",
-    amount: 4658,
-  },
-  {
-    name: "Josue Atkinson",
-    time: "26 March 2020, at 13:45 PM",
-    status: "sent",
-    amount: 1963,
-  },
-  {
-    name: "Jad Thompson",
-    time: "26 March 2020, at 12:30 PM",
-    status: "sent",
-    amount: 3247,
-  },
-  {
-    name: "Cannon Oliver",
-    time: "26 March 2020, at 05:00 AM",
-    status: "pending",
-    amount: 0,
-  },
-];
-
-export default function Commissions() {
+export default function Commissions({ data }: { data: CommissionTxn[] }) {
   return (
     <div className="bg-white shadow-sm rounded-2xl p-4">
       <div className="font-semibold">Your Commissions</div>
       <div className="flex flex-col gap-4 mt-7">
-        {commissions.map((item) => (
-          <CommissionCard key={item.name} {...item} />
+        {data.map((item) => (
+          <CommissionCard
+            time={item.date}
+            status={"sent"}
+            key={item.name}
+            {...item}
+          />
         ))}
       </div>
     </div>

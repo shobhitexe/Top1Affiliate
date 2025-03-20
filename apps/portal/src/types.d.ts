@@ -65,3 +65,37 @@ type Leads = {
   ipAddress: string;
   landingPage: string;
 };
+
+type CommissionTxn = {
+  id: string;
+  name: string;
+  country: string;
+  email: string;
+  date: string;
+  amount: number;
+  txnType: string;
+};
+
+type StatsData = {
+  registrations: number;
+  deposits: number;
+  withdrawals: number;
+  commission: number;
+
+  registrationsMonthly: number;
+  depositsMonthly: number;
+  withdrawalsMonthly: number;
+  commissionMonthly: number;
+};
+
+type WeeklyStatsData = {
+  registrations: number;
+  deposits: number;
+  withdrawals: number;
+  commission: number;
+};
+
+type DashboardStats = {
+  weekly: WeeklyStatsData;
+  commissions: CommissionTxn[];
+};

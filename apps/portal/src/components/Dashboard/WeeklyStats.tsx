@@ -1,33 +1,34 @@
+import { WeeklyStatsData } from "@/types";
 import Image from "next/image";
 
-const Stats = [
-  {
-    title: "Weekly Registrations",
-    value: 53000,
-    icon: "/images/dashboard/reg.svg",
-    change: 55,
-  },
-  {
-    title: "Weekly Deposits",
-    value: 2300,
-    icon: "/images/dashboard/deposit.svg",
-    change: 5,
-  },
-  {
-    title: "Weekly Withdrawals",
-    value: 3052,
-    icon: "/images/dashboard/withdrawal.svg",
-    change: -14,
-  },
-  {
-    title: "Weekly Commissions",
-    value: 173000,
-    icon: "/images/dashboard/commissions.svg",
-    change: 8,
-  },
-];
+export default function WeeklyStats({ stats }: { stats: WeeklyStatsData }) {
+  const Stats = [
+    {
+      title: "Weekly Registrations",
+      value: stats.registrations,
+      icon: "/images/dashboard/reg.svg",
+      change: 0,
+    },
+    {
+      title: "Weekly Deposits",
+      value: stats.deposits,
+      icon: "/images/dashboard/deposit.svg",
+      change: 0,
+    },
+    {
+      title: "Weekly Withdrawals",
+      value: stats.withdrawals,
+      icon: "/images/dashboard/withdrawal.svg",
+      change: 0,
+    },
+    {
+      title: "Weekly Commissions",
+      value: stats.commission,
+      icon: "/images/dashboard/commissions.svg",
+      change: 0,
+    },
+  ];
 
-export default function WeeklyStats() {
   return (
     <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-3">
       {Stats.map((item) => (
@@ -62,8 +63,8 @@ function StatCard({
               change > 0 ? "text-[#48BB78]" : "text-[#E53E3E]"
             } font-extrabold`}
           >
-            {change > 0 && "+"}
-            {change}%
+            {/* {change > 0 && "+"} */}
+            {/* {change}% */}
           </div>
         </div>
       </div>

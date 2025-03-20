@@ -34,7 +34,7 @@ export default async function Navbar() {
                   Balance
                 </div>
                 <div className="text-[#20F6CA] sm:text-sm text-xs relative max-sm:top-px font-semibold leading-none">
-                  $178,682
+                  $0
                 </div>
               </div>
             </div>

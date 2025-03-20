@@ -87,3 +87,8 @@ type CommissionTxn struct {
 	Amount  float64 `json:"amount"`
 	TxnType string  `json:"txnType"`
 }
+
+type DashboardStats struct {
+	Weekly      Stats           `json:"weekly"`
+	Commissions []CommissionTxn `json:"commissions"`
+}

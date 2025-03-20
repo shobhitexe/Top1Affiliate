@@ -89,3 +89,23 @@ func (h *DataHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
 
 }
+
+func (h *DataHandler) GetDashboardStats(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("affiliateId")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetDashboardStats(r.Context(), id)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}
