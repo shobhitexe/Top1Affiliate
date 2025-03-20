@@ -16,6 +16,7 @@ type DataService interface {
 	GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error)
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 	GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error)
+	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
 }
 
 type dataService struct {
@@ -186,4 +187,15 @@ func (s *dataService) GetDashboardStats(ctx context.Context, id string) (*models
 	}
 
 	return &models.DashboardStats{Weekly: *weekly, Commissions: txns}, nil
+}
+
+func (s *dataService) GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error) {
+
+	leaderboard, err := s.store.GetLeaderboard(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return leaderboard, nil
 }

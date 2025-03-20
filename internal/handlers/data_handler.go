@@ -109,3 +109,15 @@ func (h *DataHandler) GetDashboardStats(w http.ResponseWriter, r *http.Request) 
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
 
 }
+
+func (h *DataHandler) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
+
+	leaderboard, err := h.service.GetLeaderboard(r.Context())
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: leaderboard})
+}

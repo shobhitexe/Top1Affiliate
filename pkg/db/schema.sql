@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT,
     affiliate_id TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    commission INT NOT NULL DEFAULT 0
+    commission INT NOT NULL DEFAULT 0,
+    country TEXT,
 )
 
 CREATE TABLE IF NOT EXISTS leads (

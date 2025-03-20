@@ -22,6 +22,7 @@ type DataStore interface {
 
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 	GetLatestFiveTransactions(ctx context.Context, id string) ([]models.CommissionTxn, error)
+	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
 }
 
 type dataStore struct {
@@ -414,6 +415,7 @@ LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
 LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
 WHERE t.affiliate_id = $1
 AND t.status = 'Complete'
+AND t.transaction_type = 'Deposit'
 ORDER BY t.transaction_date DESC
 LIMIT 5`
 
@@ -444,4 +446,48 @@ LIMIT 5`
 	}
 
 	return txns, nil
+}
+
+func (s *dataStore) GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error) {
+
+	var leaderboard []models.Leaderboard
+
+	query := `SELECT 
+    u.name, 
+	u.country,
+    ROUND(SUM(t.amount * ((u.commission * 1.0) / 100)),2) AS total_commissions
+FROM transactions t
+INNER JOIN users u ON u.affiliate_id = t.affiliate_id 
+WHERE 
+    t.status = 'Complete' 
+    AND t.transaction_type = 'Deposit'
+GROUP BY u.name, u.country
+ORDER BY total_commissions DESC
+LIMIT 50
+`
+
+	rows, err := s.db.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var lb models.Leaderboard
+
+		if err := rows.Scan(
+			&lb.Name,
+			&lb.Country,
+			&lb.TotalCommissions,
+		); err != nil {
+			return nil, err
+		}
+
+		leaderboard = append(leaderboard, lb)
+
+	}
+
+	return leaderboard, nil
 }

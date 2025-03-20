@@ -92,3 +92,9 @@ type DashboardStats struct {
 	Weekly      Stats           `json:"weekly"`
 	Commissions []CommissionTxn `json:"commissions"`
 }
+
+type Leaderboard struct {
+	Name             string  `json:"name"`
+	Country          string  `json:"country"`
+	TotalCommissions float64 `json:"totalCommissions"`
+}

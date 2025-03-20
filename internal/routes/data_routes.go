@@ -16,6 +16,8 @@ func RegisterDataRoutes(r chi.Router, handler *handlers.DataHandler) {
 		r.Get("/weekly-stats", handler.GetWeeklyStats)
 
 		r.Get("/transactions", handler.GetTransactions)
+
+		r.Get("/leaderboard", handler.GetLeaderboard)
 	})
 
 }

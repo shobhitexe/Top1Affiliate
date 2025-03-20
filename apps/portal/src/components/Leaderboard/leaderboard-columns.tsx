@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import Image from "next/image";
+// import Image from "next/image";
 
 export const leaderboardColumns: ColumnDef<unknown>[] = [
   {
@@ -24,20 +24,20 @@ export const leaderboardColumns: ColumnDef<unknown>[] = [
     ),
   },
   {
-    accessorKey: "nickname",
+    accessorKey: "name",
     header: "NICKNAME",
     cell: ({ row }) => {
-      const nickname = row.getValue("nickname") as string;
+      const nickname = row.getValue("name") as string;
 
       return (
         <div className="flex items-center w-full gap-2">
-          <Image
+          {/* <Image
             src={"/images/leaderboard/Image.svg"}
             alt={"pfp"}
             width={53}
             height={53}
             className="flex-shrink-0"
-          />
+          /> */}
 
           <div className="flex-1 min-w-[150px]">{nickname}</div>
         </div>
@@ -50,7 +50,7 @@ export const leaderboardColumns: ColumnDef<unknown>[] = [
     size: 100,
   },
   {
-    accessorKey: "commissions",
+    accessorKey: "totalCommissions",
     header: "TOTAL COMMISSIONS",
     size: 150,
   },
