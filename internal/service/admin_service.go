@@ -13,6 +13,7 @@ type AdminService interface {
 	AdminLogin(ctx context.Context, payload models.LoginRequest) (*models.Admin, error)
 	GetAffiliates(ctx context.Context) ([]models.User, error)
 	GetAffiliate(ctx context.Context, id string) (*models.User, error)
+	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 }
 
 type adminSevice struct {
@@ -58,4 +59,19 @@ func (s *adminSevice) GetAffiliate(ctx context.Context, id string) (*models.User
 	}
 
 	return a, nil
+}
+
+func (s *adminSevice) AddAffiliate(ctx context.Context, payload models.AddAffiliate) error {
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	payload.Password = string(hashedPassword)
+
+	if err := s.store.AddAffiliate(ctx, payload); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ import "./globals.css";
 import { getServerSession } from "next-auth";
 import { options } from "./api/auth/[...nextauth]/options";
 import { SessionProviders } from "@/components";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,6 +21,8 @@ export default async function RootLayout({
     <html lang="en">
       <SessionProviders session={session}>
         <body className={`antialiased`}>{children}</body>
+
+        <Toaster />
       </SessionProviders>
     </html>
   );

@@ -1,14 +1,11 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const affiliate = {
-  id: "",
-  name: "",
-  affiliateId: "",
-  country: "",
-  commission: 0,
-};
+import { useState } from "react";
+import { AddNewAffiliateAction } from "./add-affiliate-action";
+import { useToast } from "@/hooks/use-toast";
 
 // type Affiliate = {
 //   id: string;
@@ -18,30 +15,78 @@ const affiliate = {
 //   commission: number;
 // };
 
-export default async function page() {
+export default function AddAffiliate() {
+  const { toast } = useToast();
+
+  const [data, setData] = useState({
+    id: "",
+    name: "",
+    affiliateId: "",
+    country: "",
+    password: "",
+    commission: 0,
+  });
+
+  async function SubmitActionClient() {
+    try {
+      const res = await AddNewAffiliateAction(data);
+
+      if (res === true) {
+        toast({ title: "Failed", variant: "destructive" });
+        return;
+      }
+
+      toast({ title: "New Affiliate registered" });
+
+      setData({
+        id: "",
+        name: "",
+        affiliateId: "",
+        country: "",
+        password: "",
+        commission: 0,
+      });
+    } catch (error) {
+      console.log(error);
+      toast({ title: "Failed", variant: "destructive" });
+    }
+  }
+
   return (
-    <div className="flex flex-col sm:gap-4 gap-2 bg-white p-5 shadow-sm rounded-2xl">
+    <form
+      className="flex flex-col sm:gap-4 gap-2 bg-white sm:p-5 p-3 shadow-sm rounded-2xl"
+      action={SubmitActionClient}
+    >
       <div className="font-semibold text-lg">Add new Affiliate</div>
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="affiliateid">Affiliate ID</Label>
           <Input
+            name="affiliateid"
             type="text"
             id="affiliateid"
             placeholder="Affiliate ID"
-            defaultValue={affiliate.affiliateId}
-            disabled
+            required
+            value={data.affiliateId}
+            onChange={(e) =>
+              setData((prev) => ({ ...prev, affiliateId: e.target.value }))
+            }
           />
         </div>
 
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="name">Name</Label>
           <Input
+            name="name"
             type="text"
             id="name"
             placeholder="Name"
-            defaultValue={affiliate.name}
+            required
+            value={data.name}
+            onChange={(e) =>
+              setData((prev) => ({ ...prev, name: e.target.value }))
+            }
           />
         </div>
       </div>
@@ -50,27 +95,58 @@ export default async function page() {
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="country">Country</Label>
           <Input
+            name="country"
             type="text"
             id="country"
             placeholder="country"
-            defaultValue={affiliate.country}
+            required
+            value={data.country}
+            onChange={(e) =>
+              setData((prev) => ({ ...prev, country: e.target.value }))
+            }
           />
         </div>
 
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="name">Commission</Label>
           <Input
+            name="commission"
             type="number"
             id="commission"
             placeholder="commission"
-            defaultValue={affiliate.commission}
+            required
+            value={data.commission}
+            onChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                commission: Number(e.target.value),
+              }))
+            }
           />
         </div>
+      </div>
+
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          name="password"
+          type="text"
+          id="password"
+          placeholder="password"
+          required
+          value={data.password}
+          onChange={(e) =>
+            setData((prev) => ({
+              ...prev,
+              password: e.target.value,
+            }))
+          }
+        />
       </div>
 
       <Button size={"lg"} className="mt-5 sm:w-fit">
         Create
       </Button>
-    </div>
+    </form>
   );
 }

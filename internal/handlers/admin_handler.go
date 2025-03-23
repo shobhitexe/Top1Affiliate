@@ -77,3 +77,55 @@ func (h *AdminHandler) GetAffiliate(w http.ResponseWriter, r *http.Request) {
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
 
 }
+
+func (h *AdminHandler) AddAffiliate(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: err.Error()})
+		return
+	}
+
+	defer r.Body.Close()
+
+	var payload models.AddAffiliate
+
+	if err := json.Unmarshal(body, &payload); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.AffiliateID == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Country == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Name == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Password == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Commission == 0 {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if err := h.service.AddAffiliate(r.Context(), payload); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: false})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
+
+}

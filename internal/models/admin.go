@@ -5,3 +5,11 @@ type Admin struct {
 	Username string `json:"username"`
 	Password string `json:"-"`
 }
+
+type AddAffiliate struct {
+	AffiliateID string `json:"affiliateid"`
+	Name        string `json:"name"`
+	Country     string `json:"country"`
+	Commission  int    `json:"commission"`
+	Password    string `json:"password"`
+}

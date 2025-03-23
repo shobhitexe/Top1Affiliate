@@ -11,6 +11,7 @@ type AdminStore interface {
 	GetAdminFromUsername(ctx context.Context, username string) (*models.Admin, error)
 	GetAffiliates(ctx context.Context) ([]models.User, error)
 	GetAffiliate(ctx context.Context, id string) (*models.User, error)
+	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 }
 
 type adminStore struct {
@@ -83,4 +84,17 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 	}
 
 	return &affiliate, nil
+}
+
+func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffiliate) error {
+
+	query := `INSERT INTO users (name, affiliate_id, password, commission, country) VALUES ($1, $2, $3, $4, $5)`
+
+	_, err := s.db.Exec(ctx, query, payload.Name, payload.AffiliateID, payload.Password, payload.Commission, payload.Country)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
