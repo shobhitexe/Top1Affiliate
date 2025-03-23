@@ -5,6 +5,8 @@ type User struct {
 	Name        string `json:"name"`
 	AffiliateID string `json:"affiliateId"`
 	Password    string `json:"-"`
+	Country     string `json:"country"`
+	Commission  int    `json:"commission"`
 }
 
 type LoginRequest struct {

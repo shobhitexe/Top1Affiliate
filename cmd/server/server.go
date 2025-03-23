@@ -49,6 +49,7 @@ func (s *APIServer) mount() http.Handler {
 	r.Route("/api/v1", func(r chi.Router) {
 		routes.RegisterDataRoutes(r, container.DataHandler)
 		routes.RegisterUserRoutes(r, container.UserHandler)
+		routes.RegisterAdminRoutes(r, container.AdminHandler)
 	})
 
 	return r

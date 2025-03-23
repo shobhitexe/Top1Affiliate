@@ -1,4 +1,8 @@
-
+CREATE TABLE IF NOT EXISTS admins (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL
+)
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,

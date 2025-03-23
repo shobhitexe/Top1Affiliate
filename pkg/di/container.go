@@ -12,8 +12,9 @@ import (
 )
 
 type Container struct {
-	DataHandler *handlers.DataHandler
-	UserHandler *handlers.UserHandler
+	DataHandler  *handlers.DataHandler
+	UserHandler  *handlers.UserHandler
+	AdminHandler *handlers.AdminHandler
 }
 
 func NewContainer(db *pgxpool.Pool) *Container {
@@ -28,14 +29,19 @@ func NewContainer(db *pgxpool.Pool) *Container {
 	userstore := store.NewUserStore(db)
 	userservice := service.NewUserService(userstore)
 
+	//admin
+	adminStore := store.NewAdminStore(db)
+	adminService := service.NewAdminService(adminStore)
+
 	//cron
 	ctx := context.Background()
 	c := cron.NewCronScheduler(datastore)
 	c.StartCron(ctx)
 
 	return &Container{
-		DataHandler: handlers.NewDataHandler(dataservice, utils),
-		UserHandler: handlers.NewUserHandler(userservice, utils),
+		DataHandler:  handlers.NewDataHandler(dataservice, utils),
+		UserHandler:  handlers.NewUserHandler(userservice, utils),
+		AdminHandler: handlers.NewAdminHandler(adminService, utils),
 	}
 
 }
