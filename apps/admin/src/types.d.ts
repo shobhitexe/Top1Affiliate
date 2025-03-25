@@ -17,3 +17,11 @@ declare module "next-auth" {
     token: string;
   }
 }
+
+type Affiliate = {
+  id: string;
+  name: string;
+  affiliateId: string;
+  country: string;
+  commission: number;
+};

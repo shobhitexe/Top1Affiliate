@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     commission INT NOT NULL DEFAULT 0,
     country TEXT,
+    blocked BOOLEAN NOT NULL DEFAULT FALSE,
 )
 
 CREATE TABLE IF NOT EXISTS leads (

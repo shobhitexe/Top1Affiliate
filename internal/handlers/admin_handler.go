@@ -129,3 +129,84 @@ func (h *AdminHandler) AddAffiliate(w http.ResponseWriter, r *http.Request) {
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
 
 }
+
+func (h *AdminHandler) BlockAffiliate(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: err.Error()})
+		return
+	}
+
+	defer r.Body.Close()
+
+	var payload struct {
+		ID string `json:"id"`
+	}
+
+	if err := json.Unmarshal(body, &payload); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.ID == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if err := h.service.BlockAffiliate(r.Context(), payload.ID); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: false})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
+
+}
+
+func (h *AdminHandler) EditAffiliate(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: err.Error()})
+		return
+	}
+
+	defer r.Body.Close()
+
+	var payload models.EditAffiliate
+
+	if err := json.Unmarshal(body, &payload); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.ID == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Country == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Name == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Commission == 0 {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if err := h.service.EditAffiliate(r.Context(), payload); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: err.Error(), Data: false})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
+
+}

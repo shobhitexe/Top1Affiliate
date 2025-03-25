@@ -13,3 +13,10 @@ type AddAffiliate struct {
 	Commission  int    `json:"commission"`
 	Password    string `json:"password"`
 }
+
+type EditAffiliate struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Country    string `json:"country"`
+	Commission int    `json:"commission"`
+}

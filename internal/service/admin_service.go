@@ -14,6 +14,8 @@ type AdminService interface {
 	GetAffiliates(ctx context.Context) ([]models.User, error)
 	GetAffiliate(ctx context.Context, id string) (*models.User, error)
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
+	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
+	BlockAffiliate(ctx context.Context, id string) error
 }
 
 type adminSevice struct {
@@ -74,4 +76,23 @@ func (s *adminSevice) AddAffiliate(ctx context.Context, payload models.AddAffili
 	}
 
 	return nil
+}
+
+func (s *adminSevice) BlockAffiliate(ctx context.Context, id string) error {
+
+	if err := s.store.BlockAffiliate(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *adminSevice) EditAffiliate(ctx context.Context, payload models.EditAffiliate) error {
+
+	if err := s.store.EditAffiliate(ctx, payload); err != nil {
+		return err
+	}
+
+	return nil
+
 }

@@ -7,6 +7,7 @@ type User struct {
 	Password    string `json:"-"`
 	Country     string `json:"country"`
 	Commission  int    `json:"commission"`
+	Blocked     bool   `json:"blocked"`
 }
 
 type LoginRequest struct {

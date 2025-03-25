@@ -14,6 +14,8 @@ func RegisterAdminRoutes(r chi.Router, handler *handlers.AdminHandler) {
 		r.Get("/affiliate", handler.GetAffiliate)
 
 		r.Post("/affiliate", handler.AddAffiliate)
+		r.Post("/block", handler.BlockAffiliate)
+		r.Post("/edit", handler.EditAffiliate)
 
 		r.Get("/affiliates", handler.GetAffiliates)
 	})
