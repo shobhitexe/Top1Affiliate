@@ -18,11 +18,14 @@ type DataStore interface {
 	SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
 
 	GetweeklyStats(ctx context.Context, id string) (*models.Stats, error)
+	GetNetStats(ctx context.Context, id string) (*models.Stats, error)
 	GetMonthlyStats(ctx context.Context, id string) (*models.Stats, error)
 
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 	GetLatestFiveTransactions(ctx context.Context, id string) ([]models.CommissionTxn, error)
 	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
+
+	GetBalance(ctx context.Context, id string) (float64, error)
 }
 
 type dataStore struct {
@@ -312,6 +315,53 @@ FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
 
 }
 
+func (s *dataStore) GetNetStats(ctx context.Context, id string) (*models.Stats, error) {
+
+	var stats models.Stats
+
+	query := `WITH transaction_stats AS (
+		SELECT 
+			t.affiliate_id,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+		FROM transactions t
+		LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
+		WHERE t.affiliate_id = $1 AND t.status = 'Complete'
+		GROUP BY t.affiliate_id
+	),
+	lead_stats AS (
+		SELECT 
+			l.affiliate_id, 
+			COUNT(l.id) AS lead_count
+		FROM leads l
+		WHERE l.affiliate_id = $1
+		GROUP BY l.affiliate_id
+	)
+	
+	SELECT 
+		COALESCE(ls.lead_count, 0) AS lead_count,
+		COALESCE(ts.total_deposits, 0) AS total_deposits,
+		COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
+		COALESCE(ts.total_commissions, 0) AS total_commissions
+	FROM transaction_stats ts
+	FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
+	`
+
+	if err := s.db.QueryRow(ctx, query, id).Scan(
+		&stats.Registrations,
+		&stats.Deposits,
+		&stats.Withdrawals,
+		&stats.Commissions,
+	); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &stats, nil
+
+}
+
 func (s *dataStore) GetMonthlyStats(ctx context.Context, id string) (*models.Stats, error) {
 
 	var stats models.Stats
@@ -490,4 +540,35 @@ LIMIT 50
 	}
 
 	return leaderboard, nil
+}
+
+func (s *dataStore) GetBalance(ctx context.Context, id string) (float64, error) {
+
+	var balance float64
+
+	query := `WITH transaction_stats AS (
+		SELECT 
+			ROUND(SUM(
+				CASE 
+					WHEN t.transaction_type = 'Deposit' 
+					THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) 
+					ELSE 0 
+				END
+			), 2) AS total_commissions
+		FROM transactions t
+		LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
+		WHERE t.affiliate_id = $1 
+		AND t.status = 'Complete'
+		GROUP BY t.affiliate_id
+	)
+	SELECT 
+		COALESCE(total_commissions, 0) AS total_commissions
+	FROM transaction_stats`
+
+	if err := s.db.QueryRow(ctx, query, id).Scan(&balance); err != nil {
+		return 0, err
+	}
+
+	return balance, nil
+
 }

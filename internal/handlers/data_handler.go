@@ -110,6 +110,46 @@ func (h *DataHandler) GetDashboardStats(w http.ResponseWriter, r *http.Request) 
 
 }
 
+func (h *DataHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("affiliateId")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetBalance(r.Context(), id)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}
+
+func (h *DataHandler) GetNetStats(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("affiliateId")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetNetStats(r.Context(), id)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}
+
 func (h *DataHandler) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 
 	leaderboard, err := h.service.GetLeaderboard(r.Context())

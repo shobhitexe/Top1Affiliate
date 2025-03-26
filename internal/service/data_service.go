@@ -16,6 +16,8 @@ type DataService interface {
 	GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error)
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 	GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error)
+	GetBalance(ctx context.Context, id string) (float64, error)
+	GetNetStats(ctx context.Context, id string) (*models.Stats, error)
 	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
 }
 
@@ -198,4 +200,28 @@ func (s *dataService) GetLeaderboard(ctx context.Context) ([]models.Leaderboard,
 	}
 
 	return leaderboard, nil
+}
+
+func (s *dataService) GetNetStats(ctx context.Context, id string) (*models.Stats, error) {
+
+	stats, err := s.store.GetNetStats(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+
+}
+
+func (s *dataService) GetBalance(ctx context.Context, id string) (float64, error) {
+
+	bal, err := s.store.GetBalance(ctx, id)
+
+	if err != nil {
+		log.Println(err)
+		return 0, err
+	}
+
+	return bal, nil
 }

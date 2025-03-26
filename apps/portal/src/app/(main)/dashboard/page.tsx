@@ -63,7 +63,7 @@ export default async function Page() {
 
         <div className="flex flex-col gap-4">
           <ReferralLinks />
-          <Commissions data={stats.commissions} />
+          <Commissions data={stats.commissions || []} />
         </div>
       </div>
     </div>

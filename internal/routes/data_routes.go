@@ -11,6 +11,10 @@ func RegisterDataRoutes(r chi.Router, handler *handlers.DataHandler) {
 	r.Route("/data", func(r chi.Router) {
 		r.Get("/dashboard", handler.GetDashboardStats)
 
+		r.Get("/balance", handler.GetBalance)
+
+		r.Get("/netstats", handler.GetNetStats)
+
 		r.Get("/statistics", handler.Getstatistics)
 
 		r.Get("/weekly-stats", handler.GetWeeklyStats)

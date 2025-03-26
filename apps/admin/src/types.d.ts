@@ -25,3 +25,22 @@ type Affiliate = {
   country: string;
   commission: number;
 };
+
+type WeeklyStatsData = {
+  registrations: number;
+  deposits: number;
+  withdrawals: number;
+  commission: number;
+};
+
+type StatsData = {
+  registrations: number;
+  deposits: number;
+  withdrawals: number;
+  commission: number;
+
+  registrationsMonthly: number;
+  depositsMonthly: number;
+  withdrawalsMonthly: number;
+  commissionMonthly: number;
+};
