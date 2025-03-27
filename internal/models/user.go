@@ -19,3 +19,18 @@ type LeadsEmails struct {
 	AffiliateID string
 	Email       string
 }
+
+type Payouts struct {
+	Name        string  `json:"name"`
+	AffiliateId string  `json:"affiliateId"`
+	Amount      float64 `json:"amount"`
+	Type        string  `json:"type"`
+	Status      string  `json:"status"`
+	CreatedAt   string  `json:"createdAt"`
+}
+
+type RequestPayout struct {
+	ID     string  `json:"id"`
+	Amount float64 `json:"amount"`
+	Type   string  `json:"type"`
+}

@@ -18,6 +18,12 @@ func RegisterAdminRoutes(r chi.Router, handler *handlers.AdminHandler) {
 		r.Post("/edit", handler.EditAffiliate)
 
 		r.Get("/affiliates", handler.GetAffiliates)
+
+		r.Route("/wallet", func(r chi.Router) {
+
+			r.Get("/payouts", handler.GetPayouts)
+
+		})
 	})
 
 }

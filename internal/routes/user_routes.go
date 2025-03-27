@@ -12,4 +12,11 @@ func RegisterUserRoutes(r chi.Router, handler *handlers.UserHandler) {
 		r.Post("/login", handler.UserLogin)
 	})
 
+	r.Route("/wallet", func(r chi.Router) {
+
+		r.Get("/payouts", handler.GetPayouts)
+
+		r.Post("/payout", handler.RequestPayout)
+	})
+
 }

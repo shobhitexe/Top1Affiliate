@@ -15,6 +15,7 @@ type AdminStore interface {
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 	BlockAffiliate(ctx context.Context, id string) error
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
+	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
 }
 
 type adminStore struct {
@@ -128,4 +129,45 @@ func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffil
 	}
 
 	return nil
+}
+
+func (s *adminStore) GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error) {
+
+	var payouts []models.Payouts
+
+	query := `SELECT u.name, u.affiliate_id, p.amount, p.payout_type, p.status, 
+       TO_CHAR(p.created_at, 'DD/MM/YYYY') AS created_at_str
+FROM payouts p
+LEFT JOIN users u ON u.id = p.user_id
+WHERE LOWER(p.status) = LOWER($1)
+ORDER BY p.created_at DESC
+`
+
+	rows, err := s.db.Query(ctx, query, typevar)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var payout models.Payouts
+
+		if err := rows.Scan(
+			&payout.Name,
+			&payout.AffiliateId,
+			&payout.Amount,
+			&payout.Type,
+			&payout.Status,
+			&payout.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		payouts = append(payouts, payout)
+
+	}
+
+	return payouts, nil
 }

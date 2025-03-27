@@ -1,11 +1,10 @@
 import { options } from "@/app/api/auth/[...nextauth]/options";
-import { DataTable, weeklyCommissionColumn } from "@/components";
+import { DataTable, DateFilter, weeklyCommissionColumn } from "@/components";
 import { Input } from "@/components/ui/input";
 import { BackendURL } from "@/config/env";
 import { SearchIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { Fragment } from "react";
-import DateFilter from "./DateFilter";
 import { CommissionTxn, StatsData } from "@/types";
 
 async function GetWeeklyStats(id: string) {

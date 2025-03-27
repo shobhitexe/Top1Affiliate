@@ -6,9 +6,11 @@ import ReferralLinks from "./Dashboard/ReferralLinks";
 import SalesChart from "./Dashboard/SalesChart";
 import TotalStats from "./Dashboard/TotalStats";
 import WeeklyStats from "./Dashboard/WeeklyStats";
+import DateFilter from "./DateFilter/DateFilter";
 import { leaderboardColumns } from "./Leaderboard/leaderboard-columns";
 import Navbar from "./Navbar";
 import { payoutsColumn } from "./Payouts/payoutsColumn";
+import RequestPayoutDialog from "./Payouts/RequestPayoutDialog";
 import { SessionProviders } from "./Providers/providers";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import { DataTable } from "./ui/data-table";
@@ -32,4 +34,6 @@ export {
   payoutsColumn,
   weeklyCommissionColumn,
   SessionProviders,
+  RequestPayoutDialog,
+  DateFilter,
 };

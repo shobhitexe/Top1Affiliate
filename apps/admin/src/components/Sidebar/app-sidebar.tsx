@@ -22,11 +22,11 @@ import { usePathname } from "next/navigation";
 // import PayoutsIcon from "./Icons/payouts";
 // import CommissionIcon from "./Icons/commission";
 import { AnimatePresence, motion } from "framer-motion";
-import CardIcon from "./Icons/card";
+import PayoutsIcon from "./Icons/payouts";
 
 const navMain = [
   { title: "Affiliates", url: "/list", icon: LeaderboardIcon },
-  { title: "Payouts", url: "#", icon: CardIcon },
+  { title: "Payouts", url: "/payouts/pending", icon: PayoutsIcon },
   // { title: "Statistics", url: "/statistics", icon: StatisticsIcon },
   // {
   //   title: "Weekly Commissions",

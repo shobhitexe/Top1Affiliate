@@ -11,6 +11,8 @@ import (
 
 type UserService interface {
 	UserLogin(ctx context.Context, payload models.LoginRequest) (*models.User, error)
+	RequestPayout(ctx context.Context, payload models.RequestPayout) error
+	GetPayouts(ctx context.Context, id, from, to string) ([]models.Payouts, error)
 }
 
 type userService struct {
@@ -34,4 +36,25 @@ func (s *userService) UserLogin(ctx context.Context, payload models.LoginRequest
 	}
 
 	return user, nil
+}
+
+func (s *userService) RequestPayout(ctx context.Context, payload models.RequestPayout) error {
+
+	if err := s.store.RequestPayout(ctx, payload); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *userService) GetPayouts(ctx context.Context, id, from, to string) ([]models.Payouts, error) {
+
+	p, err := s.store.GetPayouts(ctx, id, from, to)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+
 }

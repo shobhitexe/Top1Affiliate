@@ -9,6 +9,14 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     cell: ({ row }) => <div>{row.index + 1}</div>,
   },
   {
+    accessorKey: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "affiliateId",
+    header: "Affiliate ID",
+  },
+  {
     accessorKey: "createdAt",
     header: "REQUESTED DATE",
   },

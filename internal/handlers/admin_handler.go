@@ -210,3 +210,23 @@ func (h *AdminHandler) EditAffiliate(w http.ResponseWriter, r *http.Request) {
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
 
 }
+
+func (h *AdminHandler) GetPayouts(w http.ResponseWriter, r *http.Request) {
+
+	typevar := r.URL.Query().Get("type")
+
+	if typevar == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetPayouts(r.Context(), typevar)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}

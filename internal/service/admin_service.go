@@ -16,6 +16,7 @@ type AdminService interface {
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
 	BlockAffiliate(ctx context.Context, id string) error
+	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
 }
 
 type adminSevice struct {
@@ -94,5 +95,17 @@ func (s *adminSevice) EditAffiliate(ctx context.Context, payload models.EditAffi
 	}
 
 	return nil
+
+}
+
+func (s *adminSevice) GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error) {
+
+	p, err := s.store.GetPayouts(ctx, typevar)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
 
 }

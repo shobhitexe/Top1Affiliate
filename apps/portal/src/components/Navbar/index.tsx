@@ -4,9 +4,32 @@ import { Input } from "../ui/input";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { options } from "@/app/api/auth/[...nextauth]/options";
+import { BackendURL } from "@/config/env";
+
+async function GetBalance(id: string) {
+  try {
+    const res = await fetch(
+      `${BackendURL}/api/v1/data/balance?affiliateId=${id}`
+    );
+
+    if (res.status !== 200) {
+      return 0;
+    }
+
+    const data = await res.json();
+
+    return data.data || 0;
+  } catch (error) {
+    console.log(error);
+
+    return 0;
+  }
+}
 
 export default async function Navbar() {
   const session = await getServerSession(options);
+
+  const balance = await GetBalance(session?.user.affiliateId || "");
 
   return (
     <header className="flex z-30 w-full sm:h-16 h-14 shrink-0 items-center gap-2 px-4 max-sm:border-b sm:bg-[#F8F9FA] bg-white sticky top-0">
@@ -34,7 +57,7 @@ export default async function Navbar() {
                   Balance
                 </div>
                 <div className="text-[#20F6CA] sm:text-sm text-xs relative max-sm:top-px font-semibold leading-none">
-                  $0
+                  ${balance}
                 </div>
               </div>
             </div>

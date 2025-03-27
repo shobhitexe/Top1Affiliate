@@ -1,6 +1,6 @@
 "use client";
 
-import { SwitchBlockStatus } from "@/components";
+import { DetailsDropdown, SwitchBlockStatus } from "@/components";
 import { ColumnDef } from "@tanstack/react-table";
 import { EditIcon, User } from "lucide-react";
 import Link from "next/link";
@@ -9,6 +9,15 @@ export const listColumns: ColumnDef<unknown>[] = [
   {
     accessorKey: "affiliateId",
     header: "Affiliate Id",
+    cell: ({ row }) => {
+      const affiliateId = row.getValue("affiliateId") as string;
+
+      return (
+        <div className="underline cursor-pointer">
+          <DetailsDropdown id={affiliateId} />
+        </div>
+      );
+    },
   },
   {
     accessorKey: "name",

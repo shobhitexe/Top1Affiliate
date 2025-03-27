@@ -38,7 +38,7 @@ const navMain = [
   },
   { title: "Payouts", url: "/payouts", icon: PayoutsIcon },
   { title: "Sub-Affiliates", url: "#", icon: SubIcon },
-  { title: "Settings", url: "#", icon: SettingsIcon },
+  { title: "Settings", url: "/settings", icon: SettingsIcon },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS leads (
 );
 
 
-
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id INT PRIMARY KEY,
     amount NUMERIC(18,8) NOT NULL,
@@ -77,3 +76,22 @@ CREATE TABLE IF NOT EXISTS transactions (
     email TEXT NOT NULL,
     -- CONSTRAINT fk_affiliate_id FOREIGN KEY (affiliate_id) REFERENCES users(affiliate_id) ON DELETE SET NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS account_details (
+    id SERIAL PRIMARY KEY,
+    user INT NOT NULL,
+
+)
+
+
+CREATE TABLE IF NOT EXISTS payouts (
+    id SERIAL PRIMARY KEY,
+    amount INT NOT NULL,
+    payout_type TEXT CHECK(payout_type IN ('payout','transfer')) NOT NULL,
+    user_id INT NOT NULL,
+    status TEXT CHECK(status IN ('PENDING','REJECTED','PAID')) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)
