@@ -62,4 +62,17 @@ func (c *Cron) StartCron(ctx context.Context) {
 		}
 	}()
 
+	// cookie, err := c.LoginToAPI()
+	// if err != nil {
+	// 	log.Println("Error logging in to API:", err)
+	// 	return
+	// }
+
+	// currentTime := time.Now().UTC()
+	// lastHour := currentTime.Add(-2610 * time.Hour).Format("2006-01-02 15:04")
+
+	// if err := c.FetchAndSaveTransactionsDeposit(ctx, cookie, lastHour); err != nil {
+	// 	log.Println("Error fetching new txns:", err)
+	// }
+
 }

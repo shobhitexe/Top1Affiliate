@@ -278,7 +278,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
 
 	var commission float64
 
-	if err := tx.QueryRow(ctx, `SELECT commission FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commission); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT (commission / 100.0) AS net_commission FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commission); err != nil {
 		return err
 	}
 
@@ -288,15 +288,16 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
     transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
-    CASE WHEN $5 = 'Complete' THEN $2 * ($11 / 100.0) ELSE 0 END
+   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
 )
 ON CONFLICT (transaction_id) DO NOTHING 
-RETURNING amount, status
+RETURNING commission_amount
 `
 
 	var totalCommission float64
 
 	for _, txn := range transactions {
+
 		batch.Queue(query,
 			txn.TransactionID,
 			txn.Amount,
@@ -316,14 +317,11 @@ RETURNING amount, status
 
 	for range transactions {
 		var insertedAmount float64
-		var status string
 
-		err := br.QueryRow().Scan(&insertedAmount, &status)
+		err := br.QueryRow().Scan(&insertedAmount)
 		if err == nil {
 
-			if status == "Complete" {
-				totalCommission += insertedAmount
-			}
+			totalCommission += insertedAmount
 
 		} else if err != pgx.ErrNoRows {
 			br.Close()
@@ -336,7 +334,7 @@ RETURNING amount, status
 	log.Printf("Total new deposit amount for %s: %.2f", email, totalCommission)
 
 	if totalCommission > 0 {
-		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + ($1 * (commission * 1.0 / 100)) WHERE affiliate_id = $2`, totalCommission, affiliateID)
+		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
 		if err != nil {
 			return fmt.Errorf("error updating user balance: %w", err)
 		}
@@ -359,9 +357,9 @@ func (s *dataStore) GetweeklyStats(ctx context.Context, id string) (*models.Stat
 	query := `WITH transaction_stats AS (
     SELECT 
         t.affiliate_id,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+			SUM(commission_amount) AS total_commissions
     FROM transactions t
     LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
     WHERE t.affiliate_id = $1 AND t.status = 'Complete'
@@ -408,9 +406,9 @@ func (s *dataStore) GetNetStats(ctx context.Context, id string) (*models.Stats, 
 	query := `WITH transaction_stats AS (
 		SELECT 
 			t.affiliate_id,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
 			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+			SUM(commission_amount) AS total_commissions
 		FROM transactions t
 		LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
 		WHERE t.affiliate_id = $1 AND t.status = 'Complete'
@@ -455,9 +453,9 @@ func (s *dataStore) GetMonthlyStats(ctx context.Context, id string) (*models.Sta
 	query := `WITH transaction_stats AS (
     SELECT 
         t.affiliate_id,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-        ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) ELSE 0 END), 2) AS total_commissions
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
+			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+			SUM(commission_amount) AS total_commissions
     FROM transactions t
     LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
     WHERE t.affiliate_id = $1 AND t.status = 'Complete'
