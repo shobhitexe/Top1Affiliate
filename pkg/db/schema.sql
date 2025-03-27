@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     affiliate_id TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     commission INT NOT NULL DEFAULT 0,
+    balance NUMERIC(18,2) NOT NULL DEFAULT 0,
     country TEXT,
     blocked BOOLEAN NOT NULL DEFAULT FALSE,
 )
@@ -66,9 +67,9 @@ CREATE TABLE IF NOT EXISTS leads (
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id INT PRIMARY KEY,
     amount NUMERIC(18,8) NOT NULL,
-    transaction_type VARCHAR(50) NOT NULL,
-    transaction_sub_type VARCHAR(50),
-    status VARCHAR(20) NOT NULL,
+    transaction_type TEXT NOT NULL,
+    transaction_sub_type TEXT,
+    status TEXT NOT NULL,
     transaction_date TIMESTAMP NOT NULL,
     lead_id INT NOT NULL,
     lead_guid UUID NOT NULL,

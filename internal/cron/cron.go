@@ -37,7 +37,7 @@ func (c *Cron) StartCron(ctx context.Context) {
 				go func() {
 
 					currentTime := time.Now().UTC()
-					lastHour := currentTime.Add(-1 * time.Hour).Format("2006-01-02 15:04")
+					lastHour := currentTime.Add(-2 * time.Hour).Format("2006-01-02 15:04")
 
 					log.Println("Fetching leads from:", lastHour, "to:", currentTime.Format("2006-01-02 15:04"))
 
@@ -45,11 +45,11 @@ func (c *Cron) StartCron(ctx context.Context) {
 						log.Println("Error fetching new leads:", err)
 					}
 
-					if err := c.FetchAndSaveTransactionsDeposit(taskCtx, cookie); err != nil {
+					if err := c.FetchAndSaveTransactionsDeposit(taskCtx, cookie, lastHour); err != nil {
 						log.Println("Error fetching new txns:", err)
 					}
 
-					if err := c.FetchAndSaveTransactionsWithdrawals(taskCtx, cookie); err != nil {
+					if err := c.FetchAndSaveTransactionsWithdrawals(taskCtx, cookie, lastHour); err != nil {
 						log.Println("Error fetching new txns:", err)
 					}
 
@@ -61,21 +61,5 @@ func (c *Cron) StartCron(ctx context.Context) {
 			}
 		}
 	}()
-
-	// go func() {
-
-	// 	cookie, err := c.LoginToAPI()
-	// 	if err != nil {
-	// 		log.Println("Error logging in to API:", err)
-	// 		return
-	// 	}
-
-	// 	taskCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-	// 	defer cancel()
-
-	// 	if err := c.FetchAndSaveTransactionsHistory(taskCtx, cookie); err != nil {
-	// 		log.Println("Error fetching new txns:", err)
-	// 	}
-	// }()
 
 }

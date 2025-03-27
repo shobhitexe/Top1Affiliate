@@ -10,7 +10,7 @@ import (
 	"top1affiliate/internal/models"
 )
 
-func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie string) error {
+func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie string, date string) error {
 	emails, err := c.store.GetEmailsOfLeads(ctx)
 	if err != nil {
 		return err
@@ -21,8 +21,14 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 
 	for _, e := range emails {
 
+		if e.Email == "N/A" {
+			continue
+		}
+
+		offset := 0
+
 		for {
-			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s&transactionType=Deposit", limit, e.Email)
+			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&offset=%d&email=%s&transactionType=Deposit&dateFrom=%s", limit, offset, e.Email, date)
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
@@ -54,32 +60,44 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 				break
 			}
 
-			if err := c.store.SaveTransactions(ctx, data, e.Email, e.AffiliateID); err != nil {
+			if err := c.store.SaveTransactionsAndUpdateBalance(ctx, data, e.Email, e.AffiliateID); err != nil {
 				log.Println(err)
 				break
 			}
 
 			log.Printf("Fetched %d transactions for %s", len(data), e.Email)
 
+			offset += len(data)
 		}
 	}
 
 	return nil
 }
 
-func (c *Cron) FetchAndSaveTransactionsWithdrawals(ctx context.Context, cookie string) error {
+func (c *Cron) FetchAndSaveTransactionsWithdrawals(ctx context.Context, cookie string, date string) error {
+
+	log.Println("Hello")
+
 	emails, err := c.store.GetEmailsOfLeads(ctx)
 	if err != nil {
 		return err
 	}
+
+	log.Println(emails)
 
 	client := &http.Client{}
 	limit := 100
 
 	for _, e := range emails {
 
+		if e.Email == "N/A" {
+			continue
+		}
+
+		offset := 0
+
 		for {
-			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&email=%s&transactionType=Withdrawal", limit, e.Email)
+			url := fmt.Sprintf("https://publicapi.fxlvls.com/management/lead-transactions?limit=%d&offset=%d&email=%s&transactionType=Withdrawal&dateFrom=%s", limit, offset, e.Email, date)
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
@@ -118,6 +136,7 @@ func (c *Cron) FetchAndSaveTransactionsWithdrawals(ctx context.Context, cookie s
 
 			log.Printf("Fetched %d transactions for %s", len(data), e.Email)
 
+			offset += len(data)
 		}
 	}
 

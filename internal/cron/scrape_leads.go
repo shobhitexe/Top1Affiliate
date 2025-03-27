@@ -62,10 +62,9 @@ const apiURL = "https://publicapi.fxlvls.com/management/leads"
 func (c *Cron) FetchAndSaveLeadsHistory(ctx context.Context, cookie string) error {
 	client := &http.Client{}
 	limit := 100
-	minRegistrationDate := "2020-01-01 00:00" // Start from an old date
+	minRegistrationDate := "2020-01-01 00:00"
 
 	for {
-		// Build the API request URL with pagination
 		url := fmt.Sprintf("%s?limit=%d&minRegistrationDate=%s", apiURL, limit, minRegistrationDate)
 
 		req, err := http.NewRequest("GET", url, nil)
@@ -92,13 +91,11 @@ func (c *Cron) FetchAndSaveLeadsHistory(ctx context.Context, cookie string) erro
 			return err
 		}
 
-		// Stop if no more data is returned
 		if len(responseData) == 0 {
 			log.Println("No more leads to fetch.")
 			break
 		}
 
-		// Save the fetched leads
 		for _, lead := range responseData {
 			if err := c.store.SaveLeadsData(ctx, lead); err != nil {
 				log.Println("Error saving lead:", err)
@@ -106,12 +103,10 @@ func (c *Cron) FetchAndSaveLeadsHistory(ctx context.Context, cookie string) erro
 			}
 		}
 
-		// Update minRegistrationDate for next batch
 		lastLead := responseData[len(responseData)-1]
-		minRegistrationDate = lastLead.RegistrationDate // Assuming RegistrationDate field exists
+		minRegistrationDate = lastLead.RegistrationDate
 		log.Printf("Fetched %d leads, next minRegistrationDate: %s", len(responseData), minRegistrationDate)
 
-		// Optional: Add a small delay to avoid hitting rate limits
 		time.Sleep(1 * time.Second)
 	}
 

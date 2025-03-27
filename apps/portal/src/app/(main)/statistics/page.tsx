@@ -8,7 +8,6 @@ async function GetLeads(affiliateId: string) {
   try {
     const res = await fetch(
       `${BackendURL}/api/v1/data/statistics?affiliateId=${affiliateId}`,
-      // `https://publicapi.fxlvls.com/management/leads?limit=50&minRegistrationDate=2020-01-01`,
       {
         method: "GET",
       }
