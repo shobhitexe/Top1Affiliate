@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS leads (
 
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id INT PRIMARY KEY,
-    amount NUMERIC(18,8) NOT NULL,
+    amount NUMERIC(18,2) NOT NULL,
     transaction_type TEXT NOT NULL,
     transaction_sub_type TEXT,
     status TEXT NOT NULL,

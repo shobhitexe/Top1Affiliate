@@ -281,7 +281,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
 		transaction_id, amount, transaction_type, transaction_sub_type, status, 
 		transaction_date, lead_id, lead_guid, affiliate_id, email
 	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-	ON CONFLICT (transaction_id) DO NOTHING RETURNING amount;`
+	ON CONFLICT (transaction_id) DO NOTHING RETURNING amount, status`
 
 	var totalCommission float64
 
@@ -304,9 +304,15 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
 
 	for range transactions {
 		var insertedAmount float64
-		err := br.QueryRow().Scan(&insertedAmount)
+		var status string
+
+		err := br.QueryRow().Scan(&insertedAmount, &status)
 		if err == nil {
-			totalCommission += insertedAmount
+
+			if status == "Complete" {
+				totalCommission += insertedAmount
+			}
+
 		} else if err != pgx.ErrNoRows {
 			br.Close()
 			return fmt.Errorf("error inserting transactions: %w", err)
@@ -614,24 +620,7 @@ func (s *dataStore) GetBalance(ctx context.Context, id string) (float64, error) 
 
 	var balance float64
 
-	query := `WITH transaction_stats AS (
-		SELECT 
-			ROUND(SUM(
-				CASE 
-					WHEN t.transaction_type = 'Deposit' 
-					THEN COALESCE(t.amount * (COALESCE(u.commission, 0) * 1.0 / 100), 0) 
-					ELSE 0 
-				END
-			), 2) AS total_commissions
-		FROM transactions t
-		LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-		WHERE t.affiliate_id = $1 
-		AND t.status = 'Complete'
-		GROUP BY t.affiliate_id
-	)
-	SELECT 
-		COALESCE(total_commissions, 0) AS total_commissions
-	FROM transaction_stats`
+	query := `SELECT balance FROM users WHERE affiliate_id = $1`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(&balance); err != nil {
 		return 0, err

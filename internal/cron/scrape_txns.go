@@ -76,14 +76,10 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 
 func (c *Cron) FetchAndSaveTransactionsWithdrawals(ctx context.Context, cookie string, date string) error {
 
-	log.Println("Hello")
-
 	emails, err := c.store.GetEmailsOfLeads(ctx)
 	if err != nil {
 		return err
 	}
-
-	log.Println(emails)
 
 	client := &http.Client{}
 	limit := 100
