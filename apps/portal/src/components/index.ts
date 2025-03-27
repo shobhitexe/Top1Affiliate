@@ -12,6 +12,7 @@ import Navbar from "./Navbar";
 import { payoutsColumn } from "./Payouts/payoutsColumn";
 import RequestPayoutDialog from "./Payouts/RequestPayoutDialog";
 import { SessionProviders } from "./Providers/providers";
+import AddUpdateWalletDetails from "./Settings/AddUpdateWalletDetails";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import { DataTable } from "./ui/data-table";
 import LoadingSpinner from "./ui/loading";
@@ -36,4 +37,5 @@ export {
   SessionProviders,
   RequestPayoutDialog,
   DateFilter,
+  AddUpdateWalletDetails,
 };

@@ -13,7 +13,7 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     header: "REQUESTED DATE",
   },
   {
-    accessorKey: "payment_method",
+    accessorKey: "method",
     header: "PAYMENT METHOD",
   },
   {

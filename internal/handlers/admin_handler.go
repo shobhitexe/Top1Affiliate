@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"top1affiliate/internal/models"
 	"top1affiliate/internal/service"
@@ -228,5 +229,78 @@ func (h *AdminHandler) GetPayouts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}
+
+func (h *AdminHandler) DeclinePayout(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: err.Error()})
+		return
+	}
+
+	defer r.Body.Close()
+
+	var payload struct {
+		ID string `json:"id"`
+	}
+
+	if err := json.Unmarshal(body, &payload); err != nil {
+		log.Println(payload)
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.ID == "" {
+		log.Println(payload)
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if err := h.service.DeclinePayout(r.Context(), payload.ID); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: err.Error(), Data: false})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
+
+}
+
+func (h *AdminHandler) ApprovePayout(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: err.Error()})
+		return
+	}
+
+	defer r.Body.Close()
+
+	var payload struct {
+		ID     string  `json:"id"`
+		Amount float64 `json:"amount"`
+	}
+
+	if err := json.Unmarshal(body, &payload); err != nil {
+		log.Println(payload)
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.ID == "" || payload.Amount == 0 {
+		log.Println(payload)
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if err := h.service.ApprovePayout(r.Context(), payload.ID, payload.Amount); err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: err.Error(), Data: false})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: true})
 
 }

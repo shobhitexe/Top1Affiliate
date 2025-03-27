@@ -17,6 +17,8 @@ type AdminService interface {
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
 	BlockAffiliate(ctx context.Context, id string) error
 	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
+	DeclinePayout(ctx context.Context, id string) error
+	ApprovePayout(ctx context.Context, id string, amount float64) error
 }
 
 type adminSevice struct {
@@ -108,4 +110,22 @@ func (s *adminSevice) GetPayouts(ctx context.Context, typevar string) ([]models.
 
 	return p, nil
 
+}
+
+func (s *adminSevice) DeclinePayout(ctx context.Context, id string) error {
+
+	if err := s.store.DeclinePayout(ctx, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *adminSevice) ApprovePayout(ctx context.Context, id string, amount float64) error {
+
+	if err := s.store.ApprovePayout(ctx, id, amount); err != nil {
+		return err
+	}
+
+	return nil
 }

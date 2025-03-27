@@ -92,8 +92,24 @@ CREATE TABLE IF NOT EXISTS payouts (
     amount INT NOT NULL,
     payout_type TEXT CHECK(payout_type IN ('payout','transfer')) NOT NULL,
     user_id INT NOT NULL,
+    method TEXT NOT NULL,
     status TEXT CHECK(status IN ('PENDING','REJECTED','PAID')) NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )
+
+
+CREATE TABLE IF NOT EXISTS wallet_details (
+    id SERIAL PRIMARY KEY,
+    iban_number TEXT NOT NULL DEFAULT 'N/A',
+    swift_code TEXT NOT NULL DEFAULT 'N/A',
+    bank_name TEXT NOT NULL DEFAULT 'N/A',
+    chain_name TEXT NOT NULL DEFAULT 'N/A',
+    wallet_address TEXT NOT NULL DEFAULT 'N/A',
+    user_id INT NOT NULL,
+
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)
+
+ALTER TABLE wallet_details ADD CONSTRAINT unique_user_wallet UNIQUE (user_id);

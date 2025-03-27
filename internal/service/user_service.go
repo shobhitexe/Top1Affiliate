@@ -13,6 +13,8 @@ type UserService interface {
 	UserLogin(ctx context.Context, payload models.LoginRequest) (*models.User, error)
 	RequestPayout(ctx context.Context, payload models.RequestPayout) error
 	GetPayouts(ctx context.Context, id, from, to string) ([]models.Payouts, error)
+	GetWalletDetails(ctx context.Context, id string) (*models.WalletDetails, error)
+	UpdateWalletDetails(ctx context.Context, payload models.WalletDetails) error
 }
 
 type userService struct {
@@ -56,5 +58,26 @@ func (s *userService) GetPayouts(ctx context.Context, id, from, to string) ([]mo
 	}
 
 	return p, nil
+
+}
+
+func (s *userService) GetWalletDetails(ctx context.Context, id string) (*models.WalletDetails, error) {
+
+	w, err := s.store.GetWalletDetails(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return w, err
+}
+
+func (s *userService) UpdateWalletDetails(ctx context.Context, payload models.WalletDetails) error {
+
+	if err := s.store.UpdateWalletDetails(ctx, payload); err != nil {
+		return err
+	}
+
+	return nil
 
 }

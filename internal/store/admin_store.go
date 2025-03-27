@@ -16,6 +16,8 @@ type AdminStore interface {
 	BlockAffiliate(ctx context.Context, id string) error
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
 	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
+	DeclinePayout(ctx context.Context, id string) error
+	ApprovePayout(ctx context.Context, id string, amount float64) error
 }
 
 type adminStore struct {
@@ -135,7 +137,7 @@ func (s *adminStore) GetPayouts(ctx context.Context, typevar string) ([]models.P
 
 	var payouts []models.Payouts
 
-	query := `SELECT u.name, u.affiliate_id, p.amount, p.payout_type, p.status, 
+	query := `SELECT p.id, u.name, u.affiliate_id, p.amount, p.method, p.payout_type, p.status, 
        TO_CHAR(p.created_at, 'DD/MM/YYYY') AS created_at_str
 FROM payouts p
 LEFT JOIN users u ON u.id = p.user_id
@@ -155,9 +157,11 @@ ORDER BY p.created_at DESC
 		var payout models.Payouts
 
 		if err := rows.Scan(
+			&payout.ID,
 			&payout.Name,
 			&payout.AffiliateId,
 			&payout.Amount,
+			&payout.Method,
 			&payout.Type,
 			&payout.Status,
 			&payout.CreatedAt,
@@ -170,4 +174,48 @@ ORDER BY p.created_at DESC
 	}
 
 	return payouts, nil
+}
+
+func (s *adminStore) DeclinePayout(ctx context.Context, id string) error {
+
+	query := `UPDATE payouts SET status = 'REJECTED' WHERE id = $1`
+
+	if _, err := s.db.Exec(ctx, query, id); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *adminStore) ApprovePayout(ctx context.Context, id string, amount float64) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		log.Println("Failed to start transaction:", err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	var userId string
+	query1 := `UPDATE payouts SET status = 'PAID' WHERE id = $1 RETURNING user_id`
+	if err = tx.QueryRow(ctx, query1, id).Scan(&userId); err != nil {
+		log.Println("ApprovePayout query failed:", err)
+		return err
+	}
+
+	query2 := `UPDATE users SET balance = balance - $2 WHERE id = $1`
+	if _, err = tx.Exec(ctx, query2, userId, amount); err != nil {
+		log.Println("DebitUser query failed:", err)
+		return err
+	}
+
+	return nil
 }

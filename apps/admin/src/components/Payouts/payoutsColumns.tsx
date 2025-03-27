@@ -1,6 +1,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import DeclinePayout from "./DeclinePayout";
+import AcceptPayout from "./AcceptPayout";
 
 export const payoutsColumn: ColumnDef<unknown>[] = [
   {
@@ -21,12 +23,12 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     header: "REQUESTED DATE",
   },
   {
-    accessorKey: "payment_method",
+    accessorKey: "method",
     header: "PAYMENT METHOD",
   },
   {
     accessorKey: "amount",
-    header: "COMMISSION AMOUNT",
+    header: "AMOUNT",
     cell: ({ row }) => {
       const commission = row.getValue("amount") as number;
 
@@ -66,6 +68,26 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
           className={`text-white ${bg} max-w-[100px] flex justify-center items-center rounded-lg w-full py-0.5 px-5`}
         >
           <span className="relative top-px">{status}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "id",
+    header: "Action",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      const id = row.getValue("id") as string;
+      const amount = row.getValue("amount") as number;
+
+      if (status !== "PENDING") {
+        return <></>;
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <AcceptPayout id={id} amount={amount} />
+          <DeclinePayout id={id} />
         </div>
       );
     },

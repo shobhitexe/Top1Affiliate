@@ -23,6 +23,11 @@ func RegisterAdminRoutes(r chi.Router, handler *handlers.AdminHandler) {
 
 			r.Get("/payouts", handler.GetPayouts)
 
+			r.Route("/payout", func(r chi.Router) {
+				r.Post("/decline", handler.DeclinePayout)
+				r.Post("/accept", handler.ApprovePayout)
+			})
+
 		})
 	})
 

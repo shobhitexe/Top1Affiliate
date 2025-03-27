@@ -99,3 +99,11 @@ type DashboardStats = {
   weekly: WeeklyStatsData;
   commissions: CommissionTxn[];
 };
+
+type WalletDetails = {
+  iban: string;
+  swift: string;
+  bankName: string;
+  chainName: string;
+  walletAddress: string;
+};

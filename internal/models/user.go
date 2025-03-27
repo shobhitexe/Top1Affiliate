@@ -21,11 +21,13 @@ type LeadsEmails struct {
 }
 
 type Payouts struct {
+	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	AffiliateId string  `json:"affiliateId"`
 	Amount      float64 `json:"amount"`
 	Type        string  `json:"type"`
 	Status      string  `json:"status"`
+	Method      string  `json:"method"`
 	CreatedAt   string  `json:"createdAt"`
 }
 
@@ -33,4 +35,14 @@ type RequestPayout struct {
 	ID     string  `json:"id"`
 	Amount float64 `json:"amount"`
 	Type   string  `json:"type"`
+	Method string  `json:"method"`
+}
+
+type WalletDetails struct {
+	ID            string `json:"id"`
+	IBAN          string `json:"iban"`
+	Swift         string `json:"swift"`
+	BankName      string `json:"bankName"`
+	ChainName     string `json:"chainName"`
+	WalletAddress string `json:"walletAddress"`
 }
