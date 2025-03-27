@@ -502,7 +502,7 @@ func (s *dataStore) GetTransactions(ctx context.Context, id, from, to string) ([
 	var txns []models.CommissionTxn
 
 	query := `SELECT t.lead_id, l.first_name, l.country, t.email, 
-	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, ROUND((t.amount * (u.commission * 1.0 / 100)),2) AS commission, t.transaction_type 
+	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, commission_amount, t.transaction_type 
 FROM transactions t
 LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
 LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
@@ -545,7 +545,7 @@ func (s *dataStore) GetLatestFiveTransactions(ctx context.Context, id string) ([
 	var txns []models.CommissionTxn
 
 	query := `SELECT t.lead_id, l.first_name, l.country, t.email, 
-	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, ROUND((t.amount * (u.commission * 1.0 / 100)),2) AS commission, t.transaction_type 
+	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, commission_amount, t.transaction_type 
 FROM transactions t
 LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
 LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
@@ -591,7 +591,7 @@ func (s *dataStore) GetLeaderboard(ctx context.Context) ([]models.Leaderboard, e
 	query := `SELECT 
     u.name, 
 	u.country,
-    ROUND(SUM(t.amount * ((u.commission * 1.0) / 100)),2) AS total_commissions
+    ROUND(SUM(commission_amount),2) AS total_commissions
 FROM transactions t
 INNER JOIN users u ON u.affiliate_id = t.affiliate_id 
 WHERE 
