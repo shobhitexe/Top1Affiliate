@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     lead_guid UUID NOT NULL,
     affiliate_id TEXT NOT NULL,
     email TEXT NOT NULL,
+    commission_amount  NUMERIC(18,2) NOT NULL  DEFAULT 0
     -- CONSTRAINT fk_affiliate_id FOREIGN KEY (affiliate_id) REFERENCES users(affiliate_id) ON DELETE SET NULL
 );
 

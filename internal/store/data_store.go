@@ -276,12 +276,23 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
 	}
 	defer tx.Rollback(ctx)
 
+	var commission float64
+
+	if err := tx.QueryRow(ctx, `SELECT commission FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commission); err != nil {
+		return err
+	}
+
 	batch := &pgx.Batch{}
 	query := `INSERT INTO transactions (
-		transaction_id, amount, transaction_type, transaction_sub_type, status, 
-		transaction_date, lead_id, lead_guid, affiliate_id, email
-	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-	ON CONFLICT (transaction_id) DO NOTHING RETURNING amount, status`
+    transaction_id, amount, transaction_type, transaction_sub_type, status, 
+    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
+    CASE WHEN $5 = 'Complete' THEN $2 * ($11 / 100.0) ELSE 0 END
+)
+ON CONFLICT (transaction_id) DO NOTHING 
+RETURNING amount, status
+`
 
 	var totalCommission float64
 
@@ -297,6 +308,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transa
 			txn.LeadGUID,
 			affiliateID,
 			email,
+			commission,
 		)
 	}
 
