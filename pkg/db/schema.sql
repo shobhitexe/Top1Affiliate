@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS leads (
 );
 
 
+
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id INT PRIMARY KEY,
     amount NUMERIC(18,2) NOT NULL,
@@ -113,3 +114,16 @@ CREATE TABLE IF NOT EXISTS wallet_details (
 )
 
 ALTER TABLE wallet_details ADD CONSTRAINT unique_user_wallet UNIQUE (user_id);
+
+
+
+CREATE INDEX idx_leads_affiliate_id ON leads(affiliate_id);
+
+CREATE INDEX idx_transactions_email ON transactions(email);
+
+CREATE INDEX idx_transactions_type_status_amount 
+ON transactions(transaction_type, status, amount, commission_amount);
+
+CREATE INDEX idx_transactions_deposits 
+ON transactions(amount) 
+WHERE transaction_type = 'Deposit' AND status = 'Complete';
