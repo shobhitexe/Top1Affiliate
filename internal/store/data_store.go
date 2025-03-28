@@ -13,7 +13,7 @@ import (
 
 type DataStore interface {
 	SaveLeadsData(ctx context.Context, lead models.Leads) error
-	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
+	Getstatistics(ctx context.Context, id string) ([]models.Statistics, error)
 	GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error)
 	GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error)
 	SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
@@ -122,13 +122,23 @@ func (s *dataStore) SaveLeadsData(ctx context.Context, lead models.Leads) error 
 	return nil
 }
 
-func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Leads, error) {
+func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Statistics, error) {
 
-	var leads []models.Leads
+	var leads []models.Statistics
 
-	query := `SELECT affiliate_id, first_name, last_name, country, 
-	TO_CHAR(registration_date, 'DD/MM/YYYY, HH12:MI:SS') AS registration_date_str 
-	FROM leads WHERE affiliate_id = $1`
+	query := `SELECT 
+    l.affiliate_id, 
+    l.first_name, 
+    l.last_name, 
+    l.country, 
+    TO_CHAR(l.registration_date, 'DD/MM/YYYY, HH12:MI:SS') AS registration_date_str,
+    SUM(CASE WHEN t.transaction_type = 'Deposit' AND t.status = 'Complete' THEN t.amount ELSE 0 END) AS total_deposit,
+	SUM(CASE WHEN t.transaction_type = 'Withdraw' THEN t.amount ELSE 0 END) AS total_withdrawal,
+	COALESCE(SUM(t.commission_amount),0) AS total_commission
+FROM leads l
+LEFT JOIN transactions t ON t.email = l.email
+WHERE l.affiliate_id = $1
+GROUP BY l.affiliate_id, l.first_name, l.last_name, l.country, l.registration_date;`
 
 	rows, err := s.db.Query(ctx, query, id)
 
@@ -139,7 +149,7 @@ func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Lead
 	defer rows.Close()
 
 	for rows.Next() {
-		var lead models.Leads
+		var lead models.Statistics
 
 		if err := rows.Scan(
 			&lead.AffiliateID,
@@ -147,6 +157,9 @@ func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Lead
 			&lead.LastName,
 			&lead.Country,
 			&lead.RegistrationDate,
+			&lead.Deposits,
+			&lead.Withdrawals,
+			&lead.Commissions,
 		); err != nil {
 			log.Println(err)
 			return nil, err

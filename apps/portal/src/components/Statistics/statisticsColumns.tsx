@@ -37,7 +37,7 @@ export const statisticsColumns: ColumnDef<unknown>[] = [
       <div
         className={`bg-[#6CA79B] text-white text-center px-4 py-1 rounded-lg`}
       >
-        {row.getValue("deposits")}
+        ${row.getValue("deposits")}
       </div>
     ),
   },
@@ -48,29 +48,29 @@ export const statisticsColumns: ColumnDef<unknown>[] = [
       <div
         className={`bg-[#C77D7D] text-white text-center px-4 py-1 rounded-lg`}
       >
-        {row.getValue("withdrawals")}
+        ${row.getValue("withdrawals")}
       </div>
     ),
   },
+  // {
+  //   accessorKey: "net_deposit",
+  //   header: "NET DEPOSIT",
+  //   cell: ({ row }) => (
+  //     <div
+  //       className={`bg-[#019D7F] text-white text-center px-4 py-1 rounded-lg`}
+  //     >
+  //       {row.getValue("net_deposit")}
+  //     </div>
+  //   ),
+  // },
   {
-    accessorKey: "net_deposit",
-    header: "NET DEPOSIT",
-    cell: ({ row }) => (
-      <div
-        className={`bg-[#019D7F] text-white text-center px-4 py-1 rounded-lg`}
-      >
-        {row.getValue("net_deposit")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "commissions",
+    accessorKey: "commission",
     header: "COMMISSIONS",
     cell: ({ row }) => (
       <div
         className={`bg-[#677F89] text-white text-center px-4 py-1 rounded-lg`}
       >
-        {row.getValue("commissions")}
+        ${row.getValue("commission")}
       </div>
     ),
   },

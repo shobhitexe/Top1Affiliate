@@ -12,7 +12,7 @@ import (
 )
 
 type DataService interface {
-	Getstatistics(ctx context.Context, id string) ([]models.Leads, error)
+	Getstatistics(ctx context.Context, id string) ([]models.Statistics, error)
 	GetweeklyStatsWithMonthly(ctx context.Context, id string) (*models.WeeklyStatsWithMonthly, error)
 	GetTransactions(ctx context.Context, id, from, to string) ([]models.CommissionTxn, error)
 	GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error)
@@ -29,7 +29,7 @@ func NewDataService(store store.DataStore) DataService {
 	return &dataService{store: store}
 }
 
-func (s *dataService) Getstatistics(ctx context.Context, id string) ([]models.Leads, error) {
+func (s *dataService) Getstatistics(ctx context.Context, id string) ([]models.Statistics, error) {
 
 	leads, err := s.store.Getstatistics(ctx, id)
 

@@ -98,3 +98,14 @@ type Leaderboard struct {
 	Country          string  `json:"country"`
 	TotalCommissions float64 `json:"totalCommissions"`
 }
+
+type Statistics struct {
+	AffiliateID      string  `json:"affiliateId"`
+	FirstName        string  `json:"firstName"`
+	LastName         string  `json:"lastName"`
+	Country          string  `json:"country"`
+	RegistrationDate string  `json:"registrationDate"`
+	Deposits         float64 `json:"deposits"`
+	Withdrawals      float64 `json:"withdrawals"`
+	Commissions      float64 `json:"commission"`
+}
