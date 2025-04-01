@@ -24,25 +24,31 @@ import { Button } from "../ui/button";
 import PayoutsIcon from "./Icons/payouts";
 import CommissionIcon from "./Icons/commission";
 import { AnimatePresence, motion } from "framer-motion";
-import { signOut } from "next-auth/react";
-
-const navMain = [
-  { title: "Home", url: "/dashboard", icon: HomeIcon },
-  { title: "Leaderboard", url: "/leaderboard", icon: LeaderboardIcon },
-  { title: "Incentives", url: "#", icon: CardIcon },
-  { title: "Statistics", url: "/statistics", icon: StatisticsIcon },
-  {
-    title: "Weekly Commissions",
-    url: "/weekly-commissions",
-    icon: CommissionIcon,
-  },
-  { title: "Payouts", url: "/payouts", icon: PayoutsIcon },
-  { title: "Sub-Affiliates", url: "#", icon: SubIcon },
-  { title: "Settings", url: "/settings", icon: SettingsIcon },
-];
+import { signOut, useSession } from "next-auth/react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+
+  const session = useSession();
+
+  const navMain = [
+    { title: "Home", url: "/dashboard", icon: HomeIcon },
+    { title: "Leaderboard", url: "/leaderboard", icon: LeaderboardIcon },
+    { title: "Incentives", url: "#", icon: CardIcon },
+    { title: "Statistics", url: "/statistics", icon: StatisticsIcon },
+    {
+      title: "Weekly Commissions",
+      url: "/weekly-commissions",
+      icon: CommissionIcon,
+    },
+    { title: "Payouts", url: "/payouts", icon: PayoutsIcon },
+    {
+      title: "Sub-Affiliates",
+      url: `/sub-affiliates/${session.data?.user.id}`,
+      icon: SubIcon,
+    },
+    { title: "Settings", url: "/settings", icon: SettingsIcon },
+  ];
 
   return (
     <Sidebar {...props}>

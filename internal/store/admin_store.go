@@ -10,7 +10,7 @@ import (
 
 type AdminStore interface {
 	GetAdminFromUsername(ctx context.Context, username string) (*models.Admin, error)
-	GetAffiliates(ctx context.Context) ([]models.User, error)
+	GetAffiliates(ctx context.Context, id string) ([]models.User, error)
 	GetAffiliate(ctx context.Context, id string) (*models.User, error)
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 	BlockAffiliate(ctx context.Context, id string) error
@@ -41,13 +41,15 @@ func (s *adminStore) GetAdminFromUsername(ctx context.Context, username string) 
 	return &admin, nil
 }
 
-func (s *adminStore) GetAffiliates(ctx context.Context) ([]models.User, error) {
+func (s *adminStore) GetAffiliates(ctx context.Context, id string) ([]models.User, error) {
 
 	var affiliates []models.User
 
-	query := `SELECT id, affiliate_id, name, commission, country, blocked FROM users ORDER BY id DESC`
+	query := `SELECT id, affiliate_id, name, commission, country, blocked FROM users
+WHERE added_by = $1::integer
+ORDER BY id DESC`
 
-	rows, err := s.db.Query(ctx, query)
+	rows, err := s.db.Query(ctx, query, id)
 
 	if err != nil {
 		return nil, err
@@ -97,9 +99,16 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffiliate) error {
 
-	query := `INSERT INTO users (name, affiliate_id, password, commission, country) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO users (name, affiliate_id, password, commission, country, added_by) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := s.db.Exec(ctx, query, payload.Name, payload.AffiliateID, payload.Password, payload.Commission, payload.Country)
+	_, err := s.db.Exec(ctx, query,
+		payload.Name,
+		payload.AffiliateID,
+		payload.Password,
+		payload.Commission,
+		payload.Country,
+		payload.AddedBy,
+	)
 
 	if err != nil {
 		return err

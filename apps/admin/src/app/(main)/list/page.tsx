@@ -14,7 +14,7 @@ type Affiliates = {
 
 async function GetAffiliates() {
   try {
-    const res = await fetch(`${BackendURL}/api/v1/admin/affiliates`);
+    const res = await fetch(`${BackendURL}/api/v1/admin/affiliates?id=0`);
 
     if (res.status !== 200) {
       return [];

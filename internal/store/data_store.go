@@ -16,8 +16,8 @@ type DataStore interface {
 	Getstatistics(ctx context.Context, id string) ([]models.Statistics, error)
 	GetEmailsOfLeads(ctx context.Context) ([]models.LeadsEmails, error)
 	GetAllEmails(ctx context.Context) ([]models.LeadsEmails, error)
-	SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
-	SaveTransactionsAndUpdateBalance(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error
+	SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error
+	SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error
 
 	GetweeklyStats(ctx context.Context, id string) (*models.Stats, error)
 	GetNetStats(ctx context.Context, id string) (*models.Stats, error)
@@ -28,6 +28,10 @@ type DataStore interface {
 	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
 
 	GetBalance(ctx context.Context, id string) (float64, error)
+
+	GetSubAffiliates(ctx context.Context, id string) ([]models.User, error)
+
+	GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error)
 }
 
 type dataStore struct {
@@ -235,132 +239,6 @@ func (s *dataStore) GetAllEmails(ctx context.Context) ([]models.LeadsEmails, err
 
 	return emails, nil
 
-}
-
-func (s *dataStore) SaveTransactions(ctx context.Context, transactions []models.Transaction, email, affiliateId string) error {
-	if len(transactions) == 0 {
-		return nil
-	}
-
-	batch := &pgx.Batch{}
-
-	query := `INSERT INTO transactions (
-		transaction_id, amount, transaction_type, transaction_sub_type, status, 
-		transaction_date, lead_id, lead_guid, affiliate_id, email
-	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-	ON CONFLICT (transaction_id) DO NOTHING;`
-
-	for _, txn := range transactions {
-		batch.Queue(query,
-			txn.TransactionID,
-			txn.Amount,
-			txn.TransactionType,
-			txn.TransactionSubType,
-			txn.Status,
-			txn.TransactionDate,
-			txn.LeadID,
-			txn.LeadGUID,
-			affiliateId,
-			email,
-		)
-	}
-
-	br := s.db.SendBatch(ctx, batch)
-	defer br.Close()
-
-	for range transactions {
-		_, err := br.Exec()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s *dataStore) SaveTransactionsAndUpdateBalance(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error {
-	if len(transactions) == 0 {
-		return nil
-	}
-
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	defer tx.Rollback(ctx)
-
-	var commission float64
-
-	if err := tx.QueryRow(ctx, `SELECT (commission / 100.0) AS net_commission FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commission); err != nil {
-		return err
-	}
-
-	batch := &pgx.Batch{}
-	query := `INSERT INTO transactions (
-    transaction_id, amount, transaction_type, transaction_sub_type, status, 
-    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
-) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
-   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
-)
-ON CONFLICT (transaction_id) DO NOTHING 
-RETURNING commission_amount
-`
-
-	var totalCommission float64
-
-	for _, txn := range transactions {
-
-		batch.Queue(query,
-			txn.TransactionID,
-			txn.Amount,
-			txn.TransactionType,
-			txn.TransactionSubType,
-			txn.Status,
-			txn.TransactionDate,
-			txn.LeadID,
-			txn.LeadGUID,
-			affiliateID,
-			email,
-			commission,
-		)
-	}
-
-	br := tx.SendBatch(ctx, batch)
-
-	for range transactions {
-		var insertedAmount float64
-
-		err := br.QueryRow().Scan(&insertedAmount)
-		if err == nil {
-
-			totalCommission += insertedAmount
-
-		} else if err != pgx.ErrNoRows {
-			br.Close()
-			return fmt.Errorf("error inserting transactions: %w", err)
-		}
-	}
-
-	br.Close()
-
-	log.Printf("Total new deposit amount for %s: %.2f", email, totalCommission)
-
-	if totalCommission > 0 {
-		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
-		if err != nil {
-			return fmt.Errorf("error updating user balance: %w", err)
-		}
-
-		log.Printf("Updated balance for %s by %.2f", email, totalCommission)
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
-	}
-
-	log.Printf("Successfully saved transactions and updated balance for %s", email)
-	return nil
 }
 
 func (s *dataStore) GetweeklyStats(ctx context.Context, id string) (*models.Stats, error) {
@@ -651,4 +529,348 @@ func (s *dataStore) GetBalance(ctx context.Context, id string) (float64, error) 
 
 	return balance, nil
 
+}
+
+func (s *dataStore) GetSubAffiliates(ctx context.Context, id string) ([]models.User, error) {
+
+	var affiliates []models.User
+
+	query := `SELECT id, affiliate_id, name, commission, country, blocked FROM users
+WHERE added_by = $1::integer
+ORDER BY id DESC`
+
+	rows, err := s.db.Query(ctx, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+
+		var affiliate models.User
+
+		if err := rows.Scan(
+			&affiliate.ID,
+			&affiliate.AffiliateID,
+			&affiliate.Name,
+			&affiliate.Commission,
+			&affiliate.Country,
+			&affiliate.Blocked,
+		); err != nil {
+			return nil, err
+		}
+
+		affiliates = append(affiliates, affiliate)
+
+	}
+
+	return affiliates, nil
+}
+
+func (s *dataStore) GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error) {
+
+	var path []models.AffiliatePath
+
+	query := `WITH RECURSIVE referral_path AS (
+    SELECT id, name, added_by, 0 AS depth
+    FROM users 
+    WHERE id = $1
+    UNION ALL
+    SELECT u.id, u.name, u.added_by, rp.depth + 1
+    FROM users u
+    INNER JOIN referral_path rp ON u.id = rp.added_by
+)
+SELECT * FROM referral_path ORDER BY depth DESC
+`
+
+	rows, err := s.db.Query(ctx, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var p models.AffiliatePath
+
+		if err := rows.Scan(&p.ID, &p.Name, &p.AddedBy, &p.Depth); err != nil {
+			return nil, err
+		}
+
+		path = append(path, p)
+	}
+
+	return path, nil
+}
+
+func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error {
+	if len(transactions) == 0 {
+		return nil
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var commissionRate float64
+	err = tx.QueryRow(ctx, `SELECT (commission / 100.0) FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commissionRate)
+	if err != nil {
+		return err
+	}
+
+	batch := &pgx.Batch{}
+	query := `INSERT INTO transactions (
+	    transaction_id, amount, transaction_type, transaction_sub_type, status,
+	    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
+	) VALUES (
+	    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+	   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
+	)
+	ON CONFLICT (transaction_id) DO NOTHING
+	RETURNING commission_amount, amount, status
+	`
+
+	var totalCommission float64
+	var amount float64
+
+	for _, txn := range transactions {
+		batch.Queue(query,
+			txn.TransactionID,
+			txn.Amount,
+			txn.TransactionType,
+			txn.TransactionSubType,
+			txn.Status,
+			txn.TransactionDate,
+			txn.LeadID,
+			txn.LeadGUID,
+			affiliateID,
+			email,
+			commissionRate,
+		)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+
+	for range transactions {
+		var insertedAmount float64
+		var insertedTotal float64
+		var status string
+
+		err := br.QueryRow().Scan(&insertedAmount, &insertedTotal, &status)
+		if err == nil {
+			totalCommission += insertedAmount
+
+			if status == "Complete" {
+				amount += insertedTotal
+			}
+
+		} else if err != pgx.ErrNoRows {
+			br.Close()
+			return fmt.Errorf("error inserting transactions: %w", err)
+		}
+	}
+
+	br.Close()
+
+	log.Printf("Total new commission for %s: %.2f", email, totalCommission)
+
+	if totalCommission > 0 {
+
+		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance - $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
+		if err != nil {
+			return fmt.Errorf("error updating user balance: %w", err)
+		}
+
+		log.Printf("Updated balance for %s by %.2f", email, totalCommission)
+
+		err = s.distributeCommissionWithdraw(ctx, tx, amount, &affiliateID)
+		if err != nil {
+			return fmt.Errorf("error distributing commission: %w", err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	log.Printf("Successfully saved transactions and updated balance for %s", email)
+	return nil
+}
+
+func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string) error {
+	if parentID == nil || *parentID == "N/A" {
+		return nil
+	}
+
+	var parentCommission float64
+	var grandParentID *string
+
+	err := tx.QueryRow(ctx, `
+	SELECT 
+		COALESCE(uu.commission / 100.0, 0) AS net_commission, 
+		COALESCE(uu.affiliate_id, 'N/A') AS grandParentID
+	FROM users u
+	LEFT JOIN users uu ON uu.id = u.added_by 
+	WHERE u.affiliate_id = $1`, *parentID).Scan(&parentCommission, &grandParentID)
+
+	if err != nil {
+		return err
+	}
+
+	parentCommissionAmount := commissionAmount * parentCommission
+
+	if parentCommissionAmount > 0 {
+		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance - $1 WHERE affiliate_id = $2`, parentCommissionAmount, *grandParentID)
+		if err != nil {
+			return fmt.Errorf("error updating parent balance: %w", err)
+		}
+
+		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
+
+		err = s.distributeCommissionWithdraw(ctx, tx, commissionAmount, grandParentID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error {
+	if len(transactions) == 0 {
+		return nil
+	}
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var commissionRate float64
+	err = tx.QueryRow(ctx, `SELECT (commission / 100.0) FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commissionRate)
+	if err != nil {
+		return err
+	}
+
+	batch := &pgx.Batch{}
+	query := `INSERT INTO transactions (
+	    transaction_id, amount, transaction_type, transaction_sub_type, status,
+	    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
+	) VALUES (
+	    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+	   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
+	)
+	ON CONFLICT (transaction_id) DO NOTHING
+	RETURNING commission_amount, amount, status
+	`
+
+	var totalCommission float64
+	var amount float64
+
+	for _, txn := range transactions {
+		batch.Queue(query,
+			txn.TransactionID,
+			txn.Amount,
+			txn.TransactionType,
+			txn.TransactionSubType,
+			txn.Status,
+			txn.TransactionDate,
+			txn.LeadID,
+			txn.LeadGUID,
+			affiliateID,
+			email,
+			commissionRate,
+		)
+	}
+
+	br := tx.SendBatch(ctx, batch)
+
+	for range transactions {
+		var insertedAmount float64
+		var insertedTotal float64
+		var status string
+
+		err := br.QueryRow().Scan(&insertedAmount, &insertedTotal, &status)
+		if err == nil {
+			totalCommission += insertedAmount
+
+			if status == "Complete" {
+				amount += insertedTotal
+			}
+
+		} else if err != pgx.ErrNoRows {
+			br.Close()
+			return fmt.Errorf("error inserting transactions: %w", err)
+		}
+	}
+
+	br.Close()
+
+	log.Printf("Total new commission for %s: %.2f", email, totalCommission)
+
+	if totalCommission > 0 {
+
+		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
+		if err != nil {
+			return fmt.Errorf("error updating user balance: %w", err)
+		}
+
+		log.Printf("Updated balance for %s by %.2f", email, totalCommission)
+
+		err = s.distributeCommissionDeposit(ctx, tx, amount, &affiliateID)
+		if err != nil {
+			return fmt.Errorf("error distributing commission: %w", err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	log.Printf("Successfully saved transactions and updated balance for %s", email)
+	return nil
+}
+
+func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string) error {
+	if parentID == nil || *parentID == "N/A" {
+		return nil
+	}
+
+	var parentCommission float64
+	var grandParentID *string
+
+	err := tx.QueryRow(ctx, `
+	SELECT 
+		COALESCE(uu.commission / 100.0, 0) AS net_commission, 
+		COALESCE(uu.affiliate_id, 'N/A') AS grandParentID
+	FROM users u
+	LEFT JOIN users uu ON uu.id = u.added_by 
+	WHERE u.affiliate_id = $1`, *parentID).Scan(&parentCommission, &grandParentID)
+
+	if err != nil {
+		return err
+	}
+
+	parentCommissionAmount := commissionAmount * parentCommission
+
+	if parentCommissionAmount > 0 {
+		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, parentCommissionAmount, *grandParentID)
+		if err != nil {
+			return fmt.Errorf("error updating parent balance: %w", err)
+		}
+
+		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
+
+		err = s.distributeCommissionDeposit(ctx, tx, commissionAmount, grandParentID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

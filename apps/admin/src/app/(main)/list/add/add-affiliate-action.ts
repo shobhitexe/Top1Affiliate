@@ -21,10 +21,6 @@ export async function AddNewAffiliateAction(data: Affiliate) {
       return false;
     }
 
-    const datsa = await res.json();
-
-    console.log(datsa);
-
     return true;
   } catch (error) {
     console.log(error);

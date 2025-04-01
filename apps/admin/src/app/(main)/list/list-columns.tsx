@@ -22,6 +22,16 @@ export const listColumns: ColumnDef<unknown>[] = [
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => {
+      const id = row.getValue("id") as string;
+      const name = row.getValue("name") as string;
+
+      return (
+        <Link href={`/list/sub/${id}`} className="underline whitespace-nowrap">
+          {name}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "country",

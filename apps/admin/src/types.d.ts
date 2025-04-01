@@ -44,3 +44,9 @@ type StatsData = {
   withdrawalsMonthly: number;
   commissionMonthly: number;
 };
+
+type AffiliatePathType = {
+  id: string;
+  name: string;
+  addedBy: string;
+};

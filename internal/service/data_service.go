@@ -19,6 +19,8 @@ type DataService interface {
 	GetBalance(ctx context.Context, id string) (float64, error)
 	GetNetStats(ctx context.Context, id string) (*models.Stats, error)
 	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
+	GetSubAffiliates(ctx context.Context, id string) ([]models.User, error)
+	GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error)
 }
 
 type dataService struct {
@@ -224,4 +226,26 @@ func (s *dataService) GetBalance(ctx context.Context, id string) (float64, error
 	}
 
 	return bal, nil
+}
+
+func (s *dataService) GetSubAffiliates(ctx context.Context, id string) ([]models.User, error) {
+
+	aff, err := s.store.GetSubAffiliates(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return aff, nil
+}
+
+func (s *dataService) GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error) {
+
+	path, err := s.store.GetSubAffiliatePath(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return path, nil
 }

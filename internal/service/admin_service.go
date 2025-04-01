@@ -11,7 +11,7 @@ import (
 
 type AdminService interface {
 	AdminLogin(ctx context.Context, payload models.LoginRequest) (*models.Admin, error)
-	GetAffiliates(ctx context.Context) ([]models.User, error)
+	GetAffiliates(ctx context.Context, id string) ([]models.User, error)
 	GetAffiliate(ctx context.Context, id string) (*models.User, error)
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
@@ -44,9 +44,9 @@ func (s *adminSevice) AdminLogin(ctx context.Context, payload models.LoginReques
 	return a, nil
 }
 
-func (s *adminSevice) GetAffiliates(ctx context.Context) ([]models.User, error) {
+func (s *adminSevice) GetAffiliates(ctx context.Context, id string) ([]models.User, error) {
 
-	a, err := s.store.GetAffiliates(ctx)
+	a, err := s.store.GetAffiliates(ctx, id)
 
 	if err != nil {
 		return nil, err

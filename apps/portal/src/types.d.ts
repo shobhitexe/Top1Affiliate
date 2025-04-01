@@ -107,3 +107,9 @@ type WalletDetails = {
   chainName: string;
   walletAddress: string;
 };
+
+type AffiliatePathType = {
+  id: string;
+  name: string;
+  addedBy: string;
+};

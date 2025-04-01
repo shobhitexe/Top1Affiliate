@@ -1,4 +1,5 @@
 import { LoginForm } from "./Auth/SignIn";
+import AffiliatePath from "./List/AffiliatePath";
 import DetailsDropdown from "./List/DetailsDropdown";
 import EditUser from "./List/Edit/EditUser";
 import SwitchBlockStatus from "./List/SwitchBlockStatus";
@@ -20,4 +21,5 @@ export {
   NetStats,
   payoutsColumn,
   DetailsDropdown,
+  AffiliatePath,
 };

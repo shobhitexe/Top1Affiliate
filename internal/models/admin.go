@@ -7,6 +7,7 @@ type Admin struct {
 }
 
 type AddAffiliate struct {
+	AddedBy     int    `json:"addedBy"`
 	AffiliateID string `json:"affiliateid"`
 	Name        string `json:"name"`
 	Country     string `json:"country"`
@@ -19,4 +20,11 @@ type EditAffiliate struct {
 	Name       string `json:"name"`
 	Country    string `json:"country"`
 	Commission int    `json:"commission"`
+}
+
+type AffiliatePath struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	AddedBy string `json:"addedBy"`
+	Depth   string `json:"depth"`
 }

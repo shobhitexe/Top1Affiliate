@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     commission INT NOT NULL DEFAULT 0,
     balance NUMERIC(18,2) NOT NULL DEFAULT 0,
     country TEXT,
+    added_by INTEGER,
     blocked BOOLEAN NOT NULL DEFAULT FALSE,
 )
 
@@ -78,6 +79,16 @@ CREATE TABLE IF NOT EXISTS transactions (
     email TEXT NOT NULL,
     commission_amount  NUMERIC(18,2) NOT NULL  DEFAULT 0
     -- CONSTRAINT fk_affiliate_id FOREIGN KEY (affiliate_id) REFERENCES users(affiliate_id) ON DELETE SET NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS commissions (
+    id SERIAL PRIMARY KEY,
+    amount NUMERIC(18,2) NOT NULL,
+    transaction_type TEXT NOT NULL,
+    lead_id INT NOT NULL,
+    affiliate_id TEXT NOT NULL,
+    txn_id INT NOT NULL
 );
 
 

@@ -49,9 +49,17 @@ func (h *AdminHandler) AdminLogin(w http.ResponseWriter, r *http.Request) {
 
 func (h *AdminHandler) GetAffiliates(w http.ResponseWriter, r *http.Request) {
 
-	aff, err := h.service.GetAffiliates(r.Context())
+	id := r.URL.Query().Get("id")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	aff, err := h.service.GetAffiliates(r.Context(), id)
 
 	if err != nil {
+		log.Println(err)
 		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: []any{}})
 		return
 	}
@@ -123,6 +131,7 @@ func (h *AdminHandler) AddAffiliate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.AddAffiliate(r.Context(), payload); err != nil {
+		log.Println(err)
 		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: false})
 		return
 	}

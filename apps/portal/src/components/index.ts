@@ -14,6 +14,8 @@ import RequestPayoutDialog from "./Payouts/RequestPayoutDialog";
 import { SessionProviders } from "./Providers/providers";
 import AddUpdateWalletDetails from "./Settings/AddUpdateWalletDetails";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
+import AffiliatePath from "./SubAffiliates/AffiliatePath";
+import { subaffiliateColumns } from "./SubAffiliates/SubAffiliateColumns";
 import { DataTable } from "./ui/data-table";
 import LoadingSpinner from "./ui/loading";
 import { weeklyCommissionColumn } from "./Weeklycommissions/commissionsColumns";
@@ -38,4 +40,6 @@ export {
   RequestPayoutDialog,
   DateFilter,
   AddUpdateWalletDetails,
+  AffiliatePath,
+  subaffiliateColumns,
 };

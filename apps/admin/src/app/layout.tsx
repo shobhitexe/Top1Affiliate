@@ -20,9 +20,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <SessionProviders session={session}>
-        <body className={`antialiased`}>{children}</body>
-
-        <Toaster />
+        <body className={`antialiased`}>
+          {children} <Toaster />
+        </body>
       </SessionProviders>
     </html>
   );
