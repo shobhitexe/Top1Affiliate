@@ -619,23 +619,19 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 	var commissionRate float64
 	err = tx.QueryRow(ctx, `SELECT (commission / 100.0) FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commissionRate)
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching commission rate: %w", err)
 	}
 
 	batch := &pgx.Batch{}
 	query := `INSERT INTO transactions (
-	    transaction_id, amount, transaction_type, transaction_sub_type, status,
-	    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
+		transaction_id, amount, transaction_type, transaction_sub_type, status,
+		transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
 	) VALUES (
-	    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-	   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
+		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+		CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
 	)
 	ON CONFLICT (transaction_id) DO NOTHING
-	RETURNING commission_amount, amount, status
-	`
-
-	var totalCommission float64
-	var amount float64
+	RETURNING commission_amount, amount, status, transaction_id`
 
 	for _, txn := range transactions {
 		batch.Queue(query,
@@ -655,40 +651,50 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 
 	br := tx.SendBatch(ctx, batch)
 
-	for range transactions {
-		var insertedAmount float64
-		var insertedTotal float64
-		var status string
+	type txnResult struct {
+		amount      float64
+		commission  float64
+		status      string
+		transaction models.Transaction
+		txnID       string
+	}
 
-		err := br.QueryRow().Scan(&insertedAmount, &insertedTotal, &status)
-		if err == nil {
-			totalCommission += insertedAmount
+	var results []txnResult
 
-			if status == "Complete" {
-				amount += insertedTotal
-			}
+	for _, txn := range transactions {
+		var amount, commission float64
+		var status, txnID string
 
-		} else if err != pgx.ErrNoRows {
+		err := br.QueryRow().Scan(&commission, &amount, &status, &txnID)
+		if err != nil && err != pgx.ErrNoRows {
 			br.Close()
-			return fmt.Errorf("error inserting transactions: %w", err)
+			return fmt.Errorf("error reading batch result: %w", err)
+		}
+
+		if err == nil && status == "Complete" && commission > 0 {
+			results = append(results, txnResult{
+				amount:      amount,
+				commission:  commission,
+				status:      status,
+				transaction: txn,
+				txnID:       txnID,
+			})
 		}
 	}
 
 	br.Close()
 
-	log.Printf("Total new commission for %s: %.2f", email, totalCommission)
-
-	if totalCommission > 0 {
-
-		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance - $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
+	for _, r := range results {
+		_, err := tx.Exec(ctx, `UPDATE users SET balance = balance - $1 WHERE affiliate_id = $2`, r.commission, affiliateID)
 		if err != nil {
 			return fmt.Errorf("error updating user balance: %w", err)
 		}
 
-		log.Printf("Updated balance for %s by %.2f", email, totalCommission)
+		if err := s.RecordTransaction(ctx, r.amount, r.commission, "withdraw", affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+			return fmt.Errorf("error recording commission: %w", err)
+		}
 
-		err = s.distributeCommissionWithdraw(ctx, tx, amount, &affiliateID)
-		if err != nil {
+		if err := s.distributeCommissionWithdraw(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID); err != nil {
 			return fmt.Errorf("error distributing commission: %w", err)
 		}
 	}
@@ -700,8 +706,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 	log.Printf("Successfully saved transactions and updated balance for %s", email)
 	return nil
 }
-
-func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string) error {
+func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int) error {
 	if parentID == nil || *parentID == "N/A" {
 		return nil
 	}
@@ -729,9 +734,14 @@ func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx,
 			return fmt.Errorf("error updating parent balance: %w", err)
 		}
 
+		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "withdraw", *grandParentID, txnId, leadId); err != nil {
+			return fmt.Errorf("error recording transaction: %w", err)
+
+		}
+
 		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
 
-		err = s.distributeCommissionWithdraw(ctx, tx, commissionAmount, grandParentID)
+		err = s.distributeCommissionWithdraw(ctx, tx, commissionAmount, grandParentID, txnId, leadId)
 		if err != nil {
 			return err
 		}
@@ -754,23 +764,19 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context,
 	var commissionRate float64
 	err = tx.QueryRow(ctx, `SELECT (commission / 100.0) FROM users WHERE affiliate_id = $1`, affiliateID).Scan(&commissionRate)
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching commission rate: %w", err)
 	}
 
 	batch := &pgx.Batch{}
 	query := `INSERT INTO transactions (
-	    transaction_id, amount, transaction_type, transaction_sub_type, status,
-	    transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
+		transaction_id, amount, transaction_type, transaction_sub_type, status,
+		transaction_date, lead_id, lead_guid, affiliate_id, email, commission_amount
 	) VALUES (
-	    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-	   	CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
+		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+		CASE WHEN $5 = 'Complete' THEN ROUND($2 * CAST($11 AS NUMERIC), 2) ELSE 0 END
 	)
 	ON CONFLICT (transaction_id) DO NOTHING
-	RETURNING commission_amount, amount, status
-	`
-
-	var totalCommission float64
-	var amount float64
+	RETURNING commission_amount, amount, status, transaction_id`
 
 	for _, txn := range transactions {
 		batch.Queue(query,
@@ -790,40 +796,50 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context,
 
 	br := tx.SendBatch(ctx, batch)
 
-	for range transactions {
-		var insertedAmount float64
-		var insertedTotal float64
-		var status string
+	type txnResult struct {
+		amount      float64
+		commission  float64
+		status      string
+		transaction models.Transaction
+		txnID       string
+	}
 
-		err := br.QueryRow().Scan(&insertedAmount, &insertedTotal, &status)
-		if err == nil {
-			totalCommission += insertedAmount
+	var results []txnResult
 
-			if status == "Complete" {
-				amount += insertedTotal
-			}
+	for _, txn := range transactions {
+		var amount, commission float64
+		var status, txnID string
 
-		} else if err != pgx.ErrNoRows {
+		err := br.QueryRow().Scan(&commission, &amount, &status, &txnID)
+		if err != nil && err != pgx.ErrNoRows {
 			br.Close()
-			return fmt.Errorf("error inserting transactions: %w", err)
+			return fmt.Errorf("error reading batch result: %w", err)
+		}
+
+		if err == nil && status == "Complete" && commission > 0 {
+			results = append(results, txnResult{
+				amount:      amount,
+				commission:  commission,
+				status:      status,
+				transaction: txn,
+				txnID:       txnID,
+			})
 		}
 	}
 
 	br.Close()
 
-	log.Printf("Total new commission for %s: %.2f", email, totalCommission)
-
-	if totalCommission > 0 {
-
-		_, err = tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, totalCommission, affiliateID)
+	for _, r := range results {
+		_, err := tx.Exec(ctx, `UPDATE users SET balance = balance + $1 WHERE affiliate_id = $2`, r.commission, affiliateID)
 		if err != nil {
 			return fmt.Errorf("error updating user balance: %w", err)
 		}
 
-		log.Printf("Updated balance for %s by %.2f", email, totalCommission)
+		if err := s.RecordTransaction(ctx, r.amount, r.commission, "deposit", affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+			return fmt.Errorf("error recording commission: %w", err)
+		}
 
-		err = s.distributeCommissionDeposit(ctx, tx, amount, &affiliateID)
-		if err != nil {
+		if err := s.distributeCommissionDeposit(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID); err != nil {
 			return fmt.Errorf("error distributing commission: %w", err)
 		}
 	}
@@ -836,7 +852,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context,
 	return nil
 }
 
-func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string) error {
+func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int) error {
 	if parentID == nil || *parentID == "N/A" {
 		return nil
 	}
@@ -864,12 +880,30 @@ func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, 
 			return fmt.Errorf("error updating parent balance: %w", err)
 		}
 
+		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "deposit", *grandParentID, txnId, leadId); err != nil {
+			return fmt.Errorf("error recording transaction: %w", err)
+
+		}
+
 		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
 
-		err = s.distributeCommissionDeposit(ctx, tx, commissionAmount, grandParentID)
+		err = s.distributeCommissionDeposit(ctx, tx, commissionAmount, grandParentID, txnId, leadId)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *dataStore) RecordTransaction(ctx context.Context, amount, commission float64, txnType, affiliateId, txnId string, leadId int) error {
+
+	query := `INSERT INTO commissions (amount, commission_amount, transaction_type, lead_id, affiliate_id, txn_id) VALUES ($1, $2, $3, $4, $5, $6)`
+
+	if _, err := s.db.Exec(ctx, query, amount, commission, txnType, leadId, affiliateId, txnId); err != nil {
+
+		log.Println(err)
+		return err
 	}
 
 	return nil

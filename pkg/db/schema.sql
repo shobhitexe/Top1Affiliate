@@ -85,10 +85,12 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE TABLE IF NOT EXISTS commissions (
     id SERIAL PRIMARY KEY,
     amount NUMERIC(18,2) NOT NULL,
+    commission_amount NUMERIC(18,2) NOT NULL,
     transaction_type TEXT NOT NULL,
     lead_id INT NOT NULL,
     affiliate_id TEXT NOT NULL,
-    txn_id INT NOT NULL
+    txn_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
 );
 
 
