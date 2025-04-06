@@ -3,6 +3,12 @@ import { SidebarTrigger } from "../ui/sidebar";
 // import { Input } from "../ui/input";
 import { getServerSession } from "next-auth";
 import { options } from "@/app/api/auth/[...nextauth]/options";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import LogoutButton from "./LogoutButton";
 
 export default async function Navbar() {
   const session = await getServerSession(options);
@@ -27,10 +33,16 @@ export default async function Navbar() {
           </div> */}
 
           <div className="flex items-center gap-2">
-            {" "}
-            <div className="bg-gray p-1 rounded-full">
-              <User2 />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="bg-gray p-1 rounded-full cursor-pointer">
+                  <User2 />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <LogoutButton />
+              </DropdownMenuContent>
+            </DropdownMenu>
             <div className="text-xs sm:flex flex-col hidden">
               <div>{session?.user.name}</div>
               <div className="text-gray text-xs">

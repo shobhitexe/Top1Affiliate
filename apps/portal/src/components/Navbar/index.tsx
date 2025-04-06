@@ -5,6 +5,14 @@ import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import { BackendURL } from "@/config/env";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import LogoutButton from "./LogoutButton";
+import Link from "next/link";
 
 async function GetBalance(id: string) {
   try {
@@ -85,10 +93,23 @@ export default async function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            {" "}
-            <div className="bg-gray p-1 rounded-full">
-              <User2 />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="bg-gray p-1 rounded-full cursor-pointer">
+                  <User2 />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <Link href={"/settings"} className="text-left cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer">
+                    Settings
+                  </DropdownMenuItem>
+                </Link>
+
+                <LogoutButton />
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <div className="text-xs sm:flex flex-col hidden">
               <div>{session?.user.name}</div>
               <div className="text-gray text-xs">
