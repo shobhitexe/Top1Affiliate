@@ -690,11 +690,11 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 			return fmt.Errorf("error updating user balance: %w", err)
 		}
 
-		if err := s.RecordTransaction(ctx, r.amount, r.commission, "withdraw", affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+		if err := s.RecordTransaction(ctx, r.amount, r.commission, "withdraw", affiliateID, r.txnID, "direct", affiliateID, r.transaction.LeadID); err != nil {
 			return fmt.Errorf("error recording commission: %w", err)
 		}
 
-		if err := s.distributeCommissionWithdraw(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+		if err := s.distributeCommissionWithdraw(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID, affiliateID); err != nil {
 			return fmt.Errorf("error distributing commission: %w", err)
 		}
 	}
@@ -706,7 +706,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 	log.Printf("Successfully saved transactions and updated balance for %s", email)
 	return nil
 }
-func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int) error {
+func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int, originalAffiliateId string) error {
 	if parentID == nil || *parentID == "N/A" {
 		return nil
 	}
@@ -734,14 +734,14 @@ func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx,
 			return fmt.Errorf("error updating parent balance: %w", err)
 		}
 
-		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "withdraw", *grandParentID, txnId, leadId); err != nil {
+		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "withdraw", *grandParentID, txnId, "sub", originalAffiliateId, leadId); err != nil {
 			return fmt.Errorf("error recording transaction: %w", err)
 
 		}
 
 		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
 
-		err = s.distributeCommissionWithdraw(ctx, tx, commissionAmount, grandParentID, txnId, leadId)
+		err = s.distributeCommissionWithdraw(ctx, tx, commissionAmount, grandParentID, txnId, leadId, originalAffiliateId)
 		if err != nil {
 			return err
 		}
@@ -835,11 +835,11 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context,
 			return fmt.Errorf("error updating user balance: %w", err)
 		}
 
-		if err := s.RecordTransaction(ctx, r.amount, r.commission, "deposit", affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+		if err := s.RecordTransaction(ctx, r.amount, r.commission, "deposit", affiliateID, r.txnID, "direct", affiliateID, r.transaction.LeadID); err != nil {
 			return fmt.Errorf("error recording commission: %w", err)
 		}
 
-		if err := s.distributeCommissionDeposit(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID); err != nil {
+		if err := s.distributeCommissionDeposit(ctx, tx, r.amount, &affiliateID, r.txnID, r.transaction.LeadID, affiliateID); err != nil {
 			return fmt.Errorf("error distributing commission: %w", err)
 		}
 	}
@@ -852,7 +852,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceDeposit(ctx context.Context,
 	return nil
 }
 
-func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int) error {
+func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int, originalAffiliateId string) error {
 	if parentID == nil || *parentID == "N/A" {
 		return nil
 	}
@@ -880,14 +880,14 @@ func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, 
 			return fmt.Errorf("error updating parent balance: %w", err)
 		}
 
-		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "deposit", *grandParentID, txnId, leadId); err != nil {
+		if err := s.RecordTransaction(ctx, commissionAmount, parentCommissionAmount, "deposit", *grandParentID, txnId, "sub", originalAffiliateId, leadId); err != nil {
 			return fmt.Errorf("error recording transaction: %w", err)
 
 		}
 
 		log.Printf("Updated parent %s balance by %.2f", *grandParentID, parentCommissionAmount)
 
-		err = s.distributeCommissionDeposit(ctx, tx, commissionAmount, grandParentID, txnId, leadId)
+		err = s.distributeCommissionDeposit(ctx, tx, commissionAmount, grandParentID, txnId, leadId, originalAffiliateId)
 		if err != nil {
 			return err
 		}
@@ -896,11 +896,11 @@ func (s *dataStore) distributeCommissionDeposit(ctx context.Context, tx pgx.Tx, 
 	return nil
 }
 
-func (s *dataStore) RecordTransaction(ctx context.Context, amount, commission float64, txnType, affiliateId, txnId string, leadId int) error {
+func (s *dataStore) RecordTransaction(ctx context.Context, amount, commission float64, txnType, affiliateId, txnId, commissiontype, originalAffiliateId string, leadId int) error {
 
-	query := `INSERT INTO commissions (amount, commission_amount, transaction_type, lead_id, affiliate_id, txn_id) VALUES ($1, $2, $3, $4, $5, $6)`
+	query := `INSERT INTO commissions (amount, commission_amount, transaction_type, lead_id, affiliate_id, txn_id, commission_type, original_affiliate_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	if _, err := s.db.Exec(ctx, query, amount, commission, txnType, leadId, affiliateId, txnId); err != nil {
+	if _, err := s.db.Exec(ctx, query, amount, commission, txnType, leadId, affiliateId, txnId, commissiontype, originalAffiliateId); err != nil {
 
 		log.Println(err)
 		return err
