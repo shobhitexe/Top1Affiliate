@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS commissions (
     original_affiliate_id TEXT NOT NULL,
     txn_id INT NOT NULL,
     commission_type TEXT NOT NULL CHECK(commission_type IN ('direct','sub')),
+    transaction_date TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT now()
 );
 

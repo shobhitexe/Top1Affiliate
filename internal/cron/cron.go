@@ -75,4 +75,8 @@ func (c *Cron) StartCron(ctx context.Context) {
 	// 	log.Println("Error fetching new txns:", err)
 	// }
 
+	// if err := c.FetchAndSaveTransactionsWithdrawals(ctx, cookie, lastHour); err != nil {
+	// 	log.Println("Error fetching new txns:", err)
+	// }
+
 }
