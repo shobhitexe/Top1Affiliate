@@ -54,79 +54,6 @@ func parseTimestamp(value string) *time.Time {
 	return &t
 }
 
-func (s *dataStore) SaveLeadsData(ctx context.Context, lead models.Leads) error {
-
-	query := `
-		INSERT INTO leads (
-		id, first_name, last_name, last_login_date, lead_guid, country, city, sales_status,
-		language, business_unit, domain_name, is_qualified, conversion_agent_id, retention_manager_id,
-		vip_manager_id, closer_manager_id, affiliate_id, registration_date, account_creation_date,
-		activation_date, fully_activation_date, deposited, original_lead_id, original_by_name_lead_id, email
-	) VALUES (
-		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
-	)
-	ON CONFLICT (id) DO UPDATE SET
-	    id = EXCLUDED.id,
-		first_name = EXCLUDED.first_name,
-		last_name = EXCLUDED.last_name,
-		last_login_date = EXCLUDED.last_login_date,
-		lead_guid = EXCLUDED.lead_guid,
-		country = EXCLUDED.country,
-		city = EXCLUDED.city,
-		sales_status = EXCLUDED.sales_status,
-		language = EXCLUDED.language,
-		business_unit = EXCLUDED.business_unit,
-		domain_name = EXCLUDED.domain_name,
-		is_qualified = EXCLUDED.is_qualified,
-		conversion_agent_id = EXCLUDED.conversion_agent_id,
-		retention_manager_id = EXCLUDED.retention_manager_id,
-		vip_manager_id = EXCLUDED.vip_manager_id,
-		closer_manager_id = EXCLUDED.closer_manager_id,
-		affiliate_id = EXCLUDED.affiliate_id,
-		registration_date = EXCLUDED.registration_date,
-		account_creation_date = EXCLUDED.account_creation_date,
-		activation_date = EXCLUDED.activation_date,
-		fully_activation_date = EXCLUDED.fully_activation_date,
-		deposited = EXCLUDED.deposited,
-		original_lead_id = EXCLUDED.original_lead_id,
-		original_by_name_lead_id = EXCLUDED.original_by_name_lead_id,
-		email = EXCLUDED.email
-	`
-
-	if _, err := s.db.Exec(ctx, query,
-		lead.ID,
-		lead.FirstName,
-		lead.LastName,
-		parseTimestamp(lead.LastLoginDate),
-		lead.LeadGuid,
-		lead.Country,
-		lead.City,
-		lead.SalesStatus,
-		lead.Language,
-		lead.BusinessUnit,
-		lead.DomainName,
-		lead.IsQualified,
-		lead.ConversionAgentID,
-		lead.RetentionManagerID,
-		lead.VIPManagerID,
-		lead.CloserManagerID,
-		lead.AffiliateID,
-		parseTimestamp(lead.RegistrationDate),
-		parseTimestamp(lead.AccountCreationDate),
-		parseTimestamp(lead.ActivationDate),
-		parseTimestamp(lead.FullyActivationDate),
-		lead.Deposited,
-		lead.OriginalLeadID,
-		lead.OriginalByNameLeadID,
-		lead.Email,
-	); err != nil {
-		log.Println(err)
-		return err
-	}
-
-	return nil
-}
-
 func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Statistics, error) {
 
 	var leads []models.Statistics
@@ -246,17 +173,19 @@ func (s *dataStore) GetweeklyStats(ctx context.Context, id string) (*models.Stat
 
 	var stats models.Stats
 
-	query := `WITH transaction_stats AS (
+	query := `WITH base_affiliate AS (
+    SELECT $1::TEXT AS affiliate_id
+),
+transaction_stats AS (
     SELECT 
-        t.affiliate_id,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-			SUM(commission_amount) AS total_commissions
-    FROM transactions t
-    LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-    WHERE t.affiliate_id = $1 AND t.status = 'Complete'
-    AND t.transaction_date >= date_trunc('week', NOW())::DATE
-    GROUP BY t.affiliate_id
+        c.affiliate_id,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'deposit' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_deposits,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'withdraw' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+        SUM(commission_amount) AS total_commissions
+    FROM commissions c
+    WHERE c.original_affiliate_id = $1
+      AND c.transaction_date >= date_trunc('week', NOW())::DATE
+    GROUP BY c.affiliate_id
 ),
 lead_stats AS (
     SELECT 
@@ -264,7 +193,7 @@ lead_stats AS (
         COUNT(l.id) AS lead_count
     FROM leads l
     WHERE l.affiliate_id = $1
-    AND l.registration_date >= date_trunc('week', NOW())::DATE
+      AND l.registration_date >= date_trunc('week', NOW())::DATE
     GROUP BY l.affiliate_id
 )
 
@@ -273,9 +202,9 @@ SELECT
     COALESCE(ts.total_deposits, 0) AS total_deposits,
     COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
     COALESCE(ts.total_commissions, 0) AS total_commissions
-FROM transaction_stats ts
-FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
-`
+FROM base_affiliate ba
+LEFT JOIN transaction_stats ts ON ba.affiliate_id = ts.affiliate_id
+LEFT JOIN lead_stats ls ON ba.affiliate_id = ls.affiliate_id`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(
 		&stats.Registrations,
@@ -342,17 +271,19 @@ func (s *dataStore) GetMonthlyStats(ctx context.Context, id string) (*models.Sta
 
 	var stats models.Stats
 
-	query := `WITH transaction_stats AS (
+	query := `WITH base_affiliate AS (
+    SELECT $1::TEXT AS affiliate_id
+),
+transaction_stats AS (
     SELECT 
-        t.affiliate_id,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-			SUM(commission_amount) AS total_commissions
-    FROM transactions t
-    LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-    WHERE t.affiliate_id = $1 AND t.status = 'Complete'
-    AND t.transaction_date >= date_trunc('month', NOW())::DATE
-    GROUP BY t.affiliate_id
+        c.affiliate_id,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'deposit' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_deposits,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'withdraw' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+        SUM(commission_amount) AS total_commissions
+    FROM commissions c
+    WHERE c.original_affiliate_id = $1
+      AND c.transaction_date >= date_trunc('month', NOW())::DATE
+    GROUP BY c.affiliate_id
 ),
 lead_stats AS (
     SELECT 
@@ -360,7 +291,7 @@ lead_stats AS (
         COUNT(l.id) AS lead_count
     FROM leads l
     WHERE l.affiliate_id = $1
-    AND l.registration_date >= date_trunc('month', NOW())::DATE
+      AND l.registration_date >= date_trunc('month', NOW())::DATE
     GROUP BY l.affiliate_id
 )
 
@@ -369,9 +300,9 @@ SELECT
     COALESCE(ts.total_deposits, 0) AS total_deposits,
     COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
     COALESCE(ts.total_commissions, 0) AS total_commissions
-FROM transaction_stats ts
-FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
-`
+FROM base_affiliate ba
+LEFT JOIN transaction_stats ts ON ba.affiliate_id = ts.affiliate_id
+LEFT JOIN lead_stats ls ON ba.affiliate_id = ls.affiliate_id`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(
 		&stats.Registrations,
@@ -479,18 +410,21 @@ func (s *dataStore) GetLeaderboard(ctx context.Context) ([]models.Leaderboard, e
 	var leaderboard []models.Leaderboard
 
 	query := `SELECT 
+    u.affiliate_id,
     u.name, 
-	u.country,
-    ROUND(SUM(commission_amount),2) AS total_commissions
-FROM transactions t
-INNER JOIN users u ON u.affiliate_id = t.affiliate_id 
-WHERE 
-    t.status = 'Complete' 
-    AND t.transaction_type = 'Deposit'
-GROUP BY u.name, u.country
+    u.country,
+    ROUND(SUM(
+        CASE 
+            WHEN c.transaction_type = 'deposit' THEN COALESCE(c.commission_amount, 0)
+            WHEN c.transaction_type = 'withdraw' THEN -COALESCE(c.commission_amount, 0)
+            ELSE 0
+        END
+    ), 2) AS total_commissions
+FROM commissions c
+INNER JOIN users u ON u.affiliate_id = c.affiliate_id 
+GROUP BY u.affiliate_id, u.name, u.country
 ORDER BY total_commissions DESC
-LIMIT 50
-`
+LIMIT 50`
 
 	rows, err := s.db.Query(ctx, query)
 
@@ -504,6 +438,7 @@ LIMIT 50
 		var lb models.Leaderboard
 
 		if err := rows.Scan(
+			&lb.AffiliateId,
 			&lb.Name,
 			&lb.Country,
 			&lb.TotalCommissions,
@@ -604,6 +539,81 @@ SELECT * FROM referral_path ORDER BY depth DESC
 	}
 
 	return path, nil
+}
+
+// For Processing Data From API
+
+func (s *dataStore) SaveLeadsData(ctx context.Context, lead models.Leads) error {
+
+	query := `
+		INSERT INTO leads (
+		id, first_name, last_name, last_login_date, lead_guid, country, city, sales_status,
+		language, business_unit, domain_name, is_qualified, conversion_agent_id, retention_manager_id,
+		vip_manager_id, closer_manager_id, affiliate_id, registration_date, account_creation_date,
+		activation_date, fully_activation_date, deposited, original_lead_id, original_by_name_lead_id, email
+	) VALUES (
+		$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+	)
+	ON CONFLICT (id) DO UPDATE SET
+	    id = EXCLUDED.id,
+		first_name = EXCLUDED.first_name,
+		last_name = EXCLUDED.last_name,
+		last_login_date = EXCLUDED.last_login_date,
+		lead_guid = EXCLUDED.lead_guid,
+		country = EXCLUDED.country,
+		city = EXCLUDED.city,
+		sales_status = EXCLUDED.sales_status,
+		language = EXCLUDED.language,
+		business_unit = EXCLUDED.business_unit,
+		domain_name = EXCLUDED.domain_name,
+		is_qualified = EXCLUDED.is_qualified,
+		conversion_agent_id = EXCLUDED.conversion_agent_id,
+		retention_manager_id = EXCLUDED.retention_manager_id,
+		vip_manager_id = EXCLUDED.vip_manager_id,
+		closer_manager_id = EXCLUDED.closer_manager_id,
+		affiliate_id = EXCLUDED.affiliate_id,
+		registration_date = EXCLUDED.registration_date,
+		account_creation_date = EXCLUDED.account_creation_date,
+		activation_date = EXCLUDED.activation_date,
+		fully_activation_date = EXCLUDED.fully_activation_date,
+		deposited = EXCLUDED.deposited,
+		original_lead_id = EXCLUDED.original_lead_id,
+		original_by_name_lead_id = EXCLUDED.original_by_name_lead_id,
+		email = EXCLUDED.email
+	`
+
+	if _, err := s.db.Exec(ctx, query,
+		lead.ID,
+		lead.FirstName,
+		lead.LastName,
+		parseTimestamp(lead.LastLoginDate),
+		lead.LeadGuid,
+		lead.Country,
+		lead.City,
+		lead.SalesStatus,
+		lead.Language,
+		lead.BusinessUnit,
+		lead.DomainName,
+		lead.IsQualified,
+		lead.ConversionAgentID,
+		lead.RetentionManagerID,
+		lead.VIPManagerID,
+		lead.CloserManagerID,
+		lead.AffiliateID,
+		parseTimestamp(lead.RegistrationDate),
+		parseTimestamp(lead.AccountCreationDate),
+		parseTimestamp(lead.ActivationDate),
+		parseTimestamp(lead.FullyActivationDate),
+		lead.Deposited,
+		lead.OriginalLeadID,
+		lead.OriginalByNameLeadID,
+		lead.Email,
+	); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context, transactions []models.Transaction, email string, affiliateID string) error {
@@ -714,6 +724,7 @@ func (s *dataStore) SaveTransactionsAndUpdateBalanceWithdraw(ctx context.Context
 	log.Printf("Successfully saved transactions and updated balance for %s", email)
 	return nil
 }
+
 func (s *dataStore) distributeCommissionWithdraw(ctx context.Context, tx pgx.Tx, commissionAmount float64, parentID *string, txnId string, leadId int, originalAffiliateId, txnDate string) error {
 	if parentID == nil || *parentID == "N/A" {
 		return nil

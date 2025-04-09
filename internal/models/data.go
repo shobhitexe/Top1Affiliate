@@ -94,6 +94,7 @@ type DashboardStats struct {
 }
 
 type Leaderboard struct {
+	AffiliateId      string  `json:"affiliateId"`
 	Name             string  `json:"name"`
 	Country          string  `json:"country"`
 	TotalCommissions float64 `json:"totalCommissions"`
