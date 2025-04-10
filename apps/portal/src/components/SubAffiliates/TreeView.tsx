@@ -9,10 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import DetailsDropdown from "./DetailsDropdown";
 
 interface Affiliate {
   id: string;
-  crmId: string;
+  affiliateId: string;
   name: string;
   commission: number;
   country: string;
@@ -53,9 +54,14 @@ const TreeNode = ({ affiliate, level }: TreeNodeProps) => {
                   <User className="h-4 w-4 text-teal-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-sm">{affiliate.name}</CardTitle>
+                  <CardTitle className="text-sm">
+                    <DetailsDropdown
+                      id={affiliate.affiliateId}
+                      name={affiliate.name}
+                    />
+                  </CardTitle>
                   <CardDescription className="text-xs">
-                    {affiliate.crmId}
+                    #{affiliate.affiliateId}
                   </CardDescription>
                 </div>
               </div>

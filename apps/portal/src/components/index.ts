@@ -15,6 +15,7 @@ import { SessionProviders } from "./Providers/providers";
 import AddUpdateWalletDetails from "./Settings/AddUpdateWalletDetails";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import AffiliatePath from "./SubAffiliates/AffiliatePath";
+import DetailsDropdown from "./SubAffiliates/DetailsDropdown";
 import { subaffiliateColumns } from "./SubAffiliates/SubAffiliateColumns";
 import { subaffiliateColumnsList } from "./SubAffiliates/SubAffiliateColumnsList";
 import { AffiliateTreeView } from "./SubAffiliates/TreeView";
@@ -48,4 +49,5 @@ export {
   subaffiliateColumnsList,
   AffiliateTreeView,
   ViewButtons,
+  DetailsDropdown,
 };

@@ -283,13 +283,13 @@ func (s *dataService) GetSubAffiliateTree(ctx context.Context, id string) (*mode
 			children = append(children, buildTree(child))
 		}
 		return models.Tree{
-			ID:         user.ID,
-			CrmID:      "#" + user.AffiliateID,
-			Name:       user.Name,
-			Country:    user.Country,
-			Commission: user.Commission,
-			Recruits:   len(children),
-			Children:   children,
+			ID:          user.ID,
+			AffiliateID: user.AffiliateID,
+			Name:        user.Name,
+			Country:     user.Country,
+			Commission:  user.Commission,
+			Recruits:    len(children),
+			Children:    children,
 		}
 	}
 

@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import DetailsDropdown from "./DetailsDropdown";
 
 export const subaffiliateColumns: ColumnDef<unknown>[] = [
   {
@@ -9,18 +10,23 @@ export const subaffiliateColumns: ColumnDef<unknown>[] = [
     header: "CRM ID",
     cell: ({ row }) => {
       const affiliateId = row.getValue("affiliateId") as string;
-      const id = row.getValue("id") as string;
 
-      return (
-        <Link href={`/sub-affiliates/${id}/table`} className={`underline`}>
-          #{affiliateId}
-        </Link>
-      );
+      return <DetailsDropdown id={affiliateId} name={`#${affiliateId}`} />;
     },
   },
   {
     accessorKey: "name",
     header: "FIRST NAME",
+    cell: ({ row }) => {
+      const name = row.getValue("name") as string;
+      const id = row.getValue("id") as string;
+
+      return (
+        <Link href={`/sub-affiliates/${id}/table`} className={`underline`}>
+          {name}
+        </Link>
+      );
+    },
   },
 
   {

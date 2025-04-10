@@ -122,11 +122,11 @@ type TreeNode struct {
 }
 
 type Tree struct {
-	ID         string `json:"id"`
-	CrmID      string `json:"crmId"`
-	Name       string `json:"name"`
-	Country    string `json:"country"`
-	Commission int    `json:"commission"`
-	Recruits   int    `json:"recruits"`
-	Children   []Tree `json:"children,omitempty"`
+	ID          string `json:"id"`
+	AffiliateID string `json:"affiliateId"`
+	Name        string `json:"name"`
+	Country     string `json:"country"`
+	Commission  int    `json:"commission"`
+	Recruits    int    `json:"recruits"`
+	Children    []Tree `json:"children,omitempty"`
 }

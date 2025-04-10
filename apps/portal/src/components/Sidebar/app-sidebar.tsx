@@ -44,7 +44,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { title: "Payouts", url: "/payouts", icon: PayoutsIcon },
     {
       title: "Sub-Affiliates",
-      url: `/sub-affiliates/${session.data?.user.id}`,
+      url: `/sub-affiliates/${session.data?.user.id}/tree`,
       icon: SubIcon,
     },
     { title: "Settings", url: "/settings", icon: SettingsIcon },

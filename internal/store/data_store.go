@@ -225,34 +225,36 @@ func (s *dataStore) GetNetStats(ctx context.Context, id string) (*models.Stats, 
 
 	var stats models.Stats
 
-	query := `WITH transaction_stats AS (
-		SELECT 
-			t.affiliate_id,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Deposit' AND status = 'Complete' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_deposits,
-			ROUND(SUM(CASE WHEN t.transaction_type = 'Withdrawal' THEN COALESCE(t.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-			SUM(commission_amount) AS total_commissions
-		FROM transactions t
-		LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-		WHERE t.affiliate_id = $1 AND t.status = 'Complete'
-		GROUP BY t.affiliate_id
-	),
-	lead_stats AS (
-		SELECT 
-			l.affiliate_id, 
-			COUNT(l.id) AS lead_count
-		FROM leads l
-		WHERE l.affiliate_id = $1
-		GROUP BY l.affiliate_id
-	)
-	
-	SELECT 
-		COALESCE(ls.lead_count, 0) AS lead_count,
-		COALESCE(ts.total_deposits, 0) AS total_deposits,
-		COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
-		COALESCE(ts.total_commissions, 0) AS total_commissions
-	FROM transaction_stats ts
-	FULL OUTER JOIN lead_stats ls ON ts.affiliate_id = ls.affiliate_id
-	`
+	query := `WITH base_affiliate AS (
+    SELECT $1::TEXT AS affiliate_id
+),
+transaction_stats AS (
+    SELECT 
+        c.affiliate_id,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'deposit' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_deposits,
+        ROUND(SUM(CASE WHEN c.transaction_type = 'withdraw' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
+        SUM(commission_amount) AS total_commissions
+    FROM commissions c
+    WHERE c.original_affiliate_id = $1
+    GROUP BY c.affiliate_id
+),
+lead_stats AS (
+    SELECT 
+        l.affiliate_id, 
+        COUNT(l.id) AS lead_count
+    FROM leads l
+    WHERE l.affiliate_id = $1
+    GROUP BY l.affiliate_id
+)
+
+SELECT 
+    COALESCE(ls.lead_count, 0) AS lead_count,
+    COALESCE(ts.total_deposits, 0) AS total_deposits,
+    COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
+    COALESCE(ts.total_commissions, 0) AS total_commissions
+FROM base_affiliate ba
+LEFT JOIN transaction_stats ts ON ba.affiliate_id = ts.affiliate_id
+LEFT JOIN lead_stats ls ON ba.affiliate_id = ls.affiliate_id`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(
 		&stats.Registrations,
