@@ -6,11 +6,11 @@ export default function Commissions({ data }: { data: CommissionTxn[] }) {
     <div className="bg-white shadow-sm rounded-2xl p-4">
       <div className="font-semibold">Your Commissions</div>
       <div className="flex flex-col gap-4 mt-7">
-        {data.map((item) => (
+        {data.map((item, idx) => (
           <CommissionCard
             time={item.date}
             status={"sent"}
-            key={item.name}
+            key={idx}
             {...item}
           />
         ))}

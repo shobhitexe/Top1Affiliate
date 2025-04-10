@@ -1,23 +1,36 @@
+import { options } from "@/app/api/auth/[...nextauth]/options";
+import { WeeklyStatsData } from "@/types";
+import { getServerSession } from "next-auth";
 import Image from "next/image";
 
-const stats = [
-  {
-    title: "Total Registrations",
-    value: "32,984",
-    icon: "/images/dashboard/total.svg",
-  },
-  { title: "FTDS", value: "2,42M", icon: "/images/dashboard/wallet.svg" },
-  {
-    title: "Conversion Rate %",
-    value: "48%",
-    icon: "/images/dashboard/conversion.svg",
-  },
-];
+export default async function TotalStats({
+  stats,
+}: {
+  stats: WeeklyStatsData;
+}) {
+  const session = await getServerSession(options);
 
-export default function TotalStats() {
+  const Stats = [
+    {
+      title: "Total Registrations",
+      value: `${stats.registrations.toLocaleString()}`,
+      icon: "/images/dashboard/total.svg",
+    },
+    {
+      title: "FTDS",
+      value: `${stats.ftds.toLocaleString()}`,
+      icon: "/images/dashboard/wallet.svg",
+    },
+    {
+      title: "Commission %",
+      value: `${session?.user.commission}`,
+      icon: "/images/dashboard/conversion.svg",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-3">
-      {stats.map((item) => (
+      {Stats.map((item) => (
         <StatCard key={item.title} {...item} />
       ))}
     </div>

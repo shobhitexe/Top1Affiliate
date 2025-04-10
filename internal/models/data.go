@@ -64,6 +64,7 @@ type Stats struct {
 	Deposits      float64 `json:"deposits"`
 	Withdrawals   float64 `json:"withdrawals"`
 	Commissions   float64 `json:"commission"`
+	FTDS          int     `json:"ftds"`
 }
 
 type WeeklyStatsWithMonthly struct {
@@ -89,8 +90,10 @@ type CommissionTxn struct {
 }
 
 type DashboardStats struct {
-	Weekly      Stats           `json:"weekly"`
-	Commissions []CommissionTxn `json:"commissions"`
+	Weekly      Stats                  `json:"weekly"`
+	Net         Stats                  `json:"net"`
+	Commissions []CommissionTxn        `json:"commissions"`
+	Sales       []MonthlySalesOverview `json:"sales"`
 }
 
 type Leaderboard struct {
@@ -129,4 +132,11 @@ type Tree struct {
 	Commission  int    `json:"commission"`
 	Recruits    int    `json:"recruits"`
 	Children    []Tree `json:"children,omitempty"`
+}
+
+type MonthlySalesOverview struct {
+	Month       string  `json:"month"`
+	Deposits    float64 `json:"deposits"`
+	Withdrawals float64 `json:"withdrawals"`
+	Commission  float64 `json:"commission"`
 }

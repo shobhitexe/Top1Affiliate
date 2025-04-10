@@ -4,6 +4,7 @@ import NextAuth from "next-auth";
 type sessionUser = {
   id?: string;
   affiliateId?: string;
+  commission?: number;
 
   name?: string | null | undefined;
   email?: string | null | undefined;
@@ -93,11 +94,15 @@ type WeeklyStatsData = {
   deposits: number;
   withdrawals: number;
   commission: number;
+  ftds: number;
 };
 
 type DashboardStats = {
   weekly: WeeklyStatsData;
+  net: WeeklyStatsData;
   commissions: CommissionTxn[];
+  sales: MonthlySalesOverview[];
+  commissionStats: MonthlyCommissionOverview[];
 };
 
 type WalletDetails = {
@@ -112,4 +117,15 @@ type AffiliatePathType = {
   id: string;
   name: string;
   addedBy: string;
+};
+
+type MonthlySalesOverview = {
+  month: string;
+  deposits: number;
+  withdrawals: number;
+};
+
+type MonthlyCommissionOverview = {
+  month: string;
+  commission: number;
 };

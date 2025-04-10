@@ -8,25 +8,26 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { MonthlySalesOverview } from "@/types";
 
-const chartData = [
-  { month: "January", commission: 245, withdrawal: 92 },
-  { month: "February", commission: 312, withdrawal: 105 },
-  { month: "March", commission: 198, withdrawal: 78 },
-  { month: "April", commission: 276, withdrawal: 120 },
-  { month: "May", commission: 230, withdrawal: 95 },
-  { month: "June", commission: 180, withdrawal: 210 },
-  { month: "July", commission: 310, withdrawal: 112 },
-  { month: "August", commission: 256, withdrawal: 88 },
-  { month: "September", commission: 274, withdrawal: 102 },
-  { month: "October", commission: 140, withdrawal: 170 },
-  { month: "November", commission: 287, withdrawal: 110 },
-  { month: "December", commission: 299, withdrawal: 97 },
-];
+// const chartData = [
+//   { month: "January", commission: 245, withdrawal: 92 },
+//   { month: "February", commission: 312, withdrawal: 105 },
+//   { month: "March", commission: 198, withdrawal: 78 },
+//   { month: "April", commission: 276, withdrawal: 120 },
+//   { month: "May", commission: 230, withdrawal: 95 },
+//   { month: "June", commission: 180, withdrawal: 210 },
+//   { month: "July", commission: 310, withdrawal: 112 },
+//   { month: "August", commission: 256, withdrawal: 88 },
+//   { month: "September", commission: 274, withdrawal: 102 },
+//   { month: "October", commission: 140, withdrawal: 170 },
+//   { month: "November", commission: 287, withdrawal: 110 },
+//   { month: "December", commission: 299, withdrawal: 97 },
+// ];
 
 const chartConfig = {
-  commission: {
-    label: "Commission",
+  deposit: {
+    label: "Deposits",
     color: "#4FD1C5",
   },
   withdrawal: {
@@ -35,7 +36,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function SalesChart() {
+export default function SalesChart({
+  sales,
+}: {
+  sales: MonthlySalesOverview[];
+}) {
   return (
     <Card>
       <CardHeader>
@@ -44,7 +49,7 @@ export default function SalesChart() {
       <CardContent className="p-0 sm:-left-3 -left-5 relative">
         <ChartContainer config={chartConfig}>
           <AreaChart
-            data={chartData}
+            data={sales}
             margin={{
               left: 12,
               right: 12,
@@ -72,15 +77,15 @@ export default function SalesChart() {
 
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <defs>
-              <linearGradient id="fillCommission" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillDeposit" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-commission)"
+                  stopColor="var(--color-deposit)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-commission)"
+                  stopColor="var(--color-deposit)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -98,20 +103,20 @@ export default function SalesChart() {
               </linearGradient>
             </defs>
             <Area
-              dataKey="commission"
+              dataKey="deposits"
               type="natural"
-              fill="url(#fillCommission)"
-              stroke="var(--color-commission)"
+              fill="url(#fillDeposit)"
+              stroke="var(--color-deposit)"
               stackId="a"
-              name="Commission"
+              name="Deposits"
             />
             <Area
-              dataKey="withdrawal"
+              dataKey="withdrawals"
               type="natural"
               fill="url(#fillWithdrawal)"
               stroke="var(--color-withdrawal)"
-              stackId="a"
-              name="Withdrawal"
+              stackId="b"
+              name="Withdrawals"
             />
           </AreaChart>
         </ChartContainer>

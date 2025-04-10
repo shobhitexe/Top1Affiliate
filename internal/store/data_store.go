@@ -34,6 +34,8 @@ type DataStore interface {
 
 	GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error)
 	GetAllUsers(ctx context.Context, id string) ([]models.TreeNode, error)
+
+	GetMonthlySalesOverview(ctx context.Context, id string) ([]models.MonthlySalesOverview, error)
 }
 
 type dataStore struct {
@@ -233,7 +235,8 @@ transaction_stats AS (
         c.affiliate_id,
         ROUND(SUM(CASE WHEN c.transaction_type = 'deposit' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_deposits,
         ROUND(SUM(CASE WHEN c.transaction_type = 'withdraw' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-        SUM(commission_amount) AS total_commissions
+        SUM(commission_amount) AS total_commissions,
+		COUNT(DISTINCT(lead_id)) AS ftds
     FROM commissions c
     WHERE c.original_affiliate_id = $1
     GROUP BY c.affiliate_id
@@ -246,12 +249,12 @@ lead_stats AS (
     WHERE l.affiliate_id = $1
     GROUP BY l.affiliate_id
 )
-
 SELECT 
     COALESCE(ls.lead_count, 0) AS lead_count,
     COALESCE(ts.total_deposits, 0) AS total_deposits,
     COALESCE(ts.total_withdrawals, 0) AS total_withdrawals,
-    COALESCE(ts.total_commissions, 0) AS total_commissions
+    COALESCE(ts.total_commissions, 0) AS total_commissions,
+	COALESCE(ts.ftds, 0) AS ftds
 FROM base_affiliate ba
 LEFT JOIN transaction_stats ts ON ba.affiliate_id = ts.affiliate_id
 LEFT JOIN lead_stats ls ON ba.affiliate_id = ls.affiliate_id`
@@ -261,6 +264,7 @@ LEFT JOIN lead_stats ls ON ba.affiliate_id = ls.affiliate_id`
 		&stats.Deposits,
 		&stats.Withdrawals,
 		&stats.Commissions,
+		&stats.FTDS,
 	); err != nil {
 		log.Println(err)
 		return nil, err
@@ -598,6 +602,43 @@ SELECT * FROM referral_path ORDER BY depth DESC
 	}
 
 	return path, nil
+}
+
+func (s *dataStore) GetMonthlySalesOverview(ctx context.Context, id string) ([]models.MonthlySalesOverview, error) {
+
+	var sales []models.MonthlySalesOverview
+
+	query := `SELECT 
+    TRIM(TO_CHAR(transaction_date, 'Month')) AS month,
+    SUM(CASE WHEN transaction_type = 'deposit' THEN commission_amount ELSE 0 END) AS deposit,
+    SUM(CASE WHEN transaction_type = 'withdraw' THEN amount ELSE 0 END) AS withdrawal,
+	SUM(CASE WHEN transaction_type = 'deposit' THEN commission_amount ELSE -commission_amount END) AS commission
+FROM commissions
+WHERE affiliate_id = $1
+GROUP BY TO_CHAR(transaction_date, 'Month'), EXTRACT(MONTH FROM transaction_date)
+ORDER BY EXTRACT(MONTH FROM transaction_date)`
+
+	rows, err := s.db.Query(ctx, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var s models.MonthlySalesOverview
+
+		if err := rows.Scan(&s.Month, &s.Deposits, &s.Withdrawals, &s.Commission); err != nil {
+			return nil, err
+		}
+
+		sales = append(sales, s)
+	}
+
+	return sales, nil
+
 }
 
 // For Processing Data From API

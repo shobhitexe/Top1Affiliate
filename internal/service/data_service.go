@@ -162,11 +162,13 @@ func (s *dataService) GetTransactions(ctx context.Context, id, from, to string) 
 
 func (s *dataService) GetDashboardStats(ctx context.Context, id string) (*models.DashboardStats, error) {
 
-	var weekly *models.Stats
-	var weeklyErr error
+	var weekly, net *models.Stats
+	var weeklyErr, netErr error
+
+	var sales []models.MonthlySalesOverview
 
 	var txns []models.CommissionTxn
-	var txnErr error
+	var txnErr, salesErr error
 
 	var wg sync.WaitGroup
 
@@ -179,21 +181,45 @@ func (s *dataService) GetDashboardStats(ctx context.Context, id string) (*models
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		net, netErr = s.store.GetNetStats(ctx, id)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		txns, txnErr = s.store.GetLatestFiveTransactions(ctx, id)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sales, salesErr = s.store.GetMonthlySalesOverview(ctx, id)
 	}()
 
 	wg.Wait()
 
 	if weeklyErr != nil {
-		log.Println(weeklyErr)
 		return nil, weeklyErr
+	}
+
+	if netErr != nil {
+		return nil, netErr
 	}
 
 	if txnErr != nil {
 		return nil, txnErr
 	}
 
-	return &models.DashboardStats{Weekly: *weekly, Commissions: txns}, nil
+	if salesErr != nil {
+		return nil, salesErr
+	}
+
+	return &models.DashboardStats{
+		Weekly:      *weekly,
+		Net:         *net,
+		Commissions: txns,
+		Sales:       sales,
+	}, nil
 }
 
 func (s *dataService) GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error) {

@@ -10,21 +10,22 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { MonthlySalesOverview } from "@/types";
 
-const chartData = [
-  { month: "January", commission: 245 },
-  { month: "February", commission: 312 },
-  { month: "March", commission: 198 },
-  { month: "April", commission: 276 },
-  { month: "May", commission: 230 },
-  { month: "June", commission: 289 },
-  { month: "July", commission: 315 },
-  { month: "August", commission: 190 },
-  { month: "September", commission: 278 },
-  { month: "October", commission: 260 },
-  { month: "November", commission: 300 },
-  { month: "December", commission: 225 },
-];
+// const chartData = [
+//   { month: "January", commission: 245 },
+//   { month: "February", commission: 312 },
+//   { month: "March", commission: 198 },
+//   { month: "April", commission: 276 },
+//   { month: "May", commission: 230 },
+//   { month: "June", commission: 289 },
+//   { month: "July", commission: 315 },
+//   { month: "August", commission: 190 },
+//   { month: "September", commission: 278 },
+//   { month: "October", commission: 260 },
+//   { month: "November", commission: 300 },
+//   { month: "December", commission: 225 },
+// ];
 
 const chartConfig = {
   commission: {
@@ -33,7 +34,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MonthlyBarChart() {
+export function MonthlyBarChart({ sales }: { sales: MonthlySalesOverview[] }) {
   return (
     <Card className="shadow-sm border-none">
       <CardContent className="mt-5">
@@ -48,7 +49,7 @@ export function MonthlyBarChart() {
           <BarChart
             className="mt-5 max-sm:-left-5 relative w-full"
             accessibilityLayer
-            data={chartData}
+            data={sales}
             margin={{ left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />

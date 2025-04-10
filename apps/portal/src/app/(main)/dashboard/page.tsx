@@ -18,6 +18,13 @@ const stats = {
     withdrawals: 0,
     commission: 0,
   },
+  net: {
+    registrations: 0,
+    deposits: 0,
+    withdrawals: 0,
+    commission: 0,
+    ftds: 0,
+  },
 };
 
 async function GetDashboardStats(id: string) {
@@ -52,12 +59,12 @@ export default async function Page() {
 
       <div className="grid md:grid-cols-[55%_45%] grid-cols-1 gap-4">
         <div className="flex flex-col gap-4">
-          <SalesChart />
+          <SalesChart sales={stats.sales} />
           <div className="grid lg:grid-cols-[55%_45%] grid-cols-1 gap-2">
             <div className="bg-white shadow-sm rounded-2xl overflow-hidden">
-              <MonthlyBarChart />
+              <MonthlyBarChart sales={stats.sales} />
             </div>
-            <TotalStats />
+            <TotalStats stats={stats.net} />
           </div>
         </div>
 

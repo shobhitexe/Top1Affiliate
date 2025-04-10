@@ -24,10 +24,15 @@ export const weeklyCommissionColumn: ColumnDef<unknown>[] = [
     header: "COMMISSION AMOUNT",
     cell: ({ row }) => {
       const commission = row.getValue("amount") as number;
+      const type = row.getValue("txnType") as string;
 
       return (
-        <div className="text-white bg-[#7B7B7B] max-w-[80px] flex justify-center rounded-lg w-full py-0.5 px-5">
-          ${commission}
+        <div
+          className={`text-white ${
+            type === "Deposit" ? "bg-[#7B7B7B]" : "bg-red-500"
+          } max-w-[80px] flex justify-center rounded-lg w-full py-0.5 px-5`}
+        >
+          {type === "Withdrawal" ? "-" : ""}${commission}
         </div>
       );
     },
