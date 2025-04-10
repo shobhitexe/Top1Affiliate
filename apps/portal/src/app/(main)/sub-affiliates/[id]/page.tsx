@@ -1,5 +1,11 @@
-import { AffiliatePath, DataTable, subaffiliateColumns } from "@/components";
+import {
+  AffiliatePath,
+  AffiliateTreeView,
+  DataTable,
+  subaffiliateColumns,
+} from "@/components";
 import { BackendURL } from "@/config/env";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 async function GetAffiliates(id: string) {
   try {
@@ -35,6 +41,23 @@ async function GetAffiliatePath(id: string) {
   }
 }
 
+async function GetAffiliateTree(id: string) {
+  try {
+    const res = await fetch(`${BackendURL}/api/v1/data/tree?id=${id}`);
+
+    if (res.status !== 200) {
+      return [];
+    }
+
+    const data = await res.json();
+
+    return data.data || [];
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
 export default async function page({
   params,
 }: {
@@ -44,17 +67,27 @@ export default async function page({
 
   const path = await GetAffiliatePath(id);
 
+  const tree = await GetAffiliateTree(id);
+
   const affiliates = await GetAffiliates(id);
 
   return (
-    <div className="flex flex-col sm:gap-4 gap-2 bg-white p-5 shadow-sm rounded-2xl">
-      <div className="flex items-center justify-between">
-        <div className="font-semibold text-lg">Sub Affiliates</div>
-      </div>
-
-      <AffiliatePath path={path} />
-
-      <DataTable columns={subaffiliateColumns} data={affiliates} />
-    </div>
+    <Tabs defaultValue="tree" className="">
+      <TabsList>
+        <TabsTrigger value="tree">Tree</TabsTrigger>
+        <TabsTrigger value="list">List</TabsTrigger>
+        <TabsTrigger value="table">Table</TabsTrigger>
+      </TabsList>
+      <TabsContent value="tree" className="pt-2">
+        <AffiliateTreeView affiliateData={tree} />
+      </TabsContent>
+      <TabsContent value="list" className="pt-2">
+        Make changes to your account here.
+      </TabsContent>
+      <TabsContent value="table" className="pt-2">
+        <AffiliatePath path={path} />
+        <DataTable columns={subaffiliateColumns} data={affiliates} />
+      </TabsContent>
+    </Tabs>
   );
 }

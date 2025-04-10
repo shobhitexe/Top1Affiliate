@@ -110,3 +110,23 @@ type Statistics struct {
 	Withdrawals      float64 `json:"withdrawals"`
 	Commissions      float64 `json:"commission"`
 }
+
+type TreeNode struct {
+	ID          string `json:"id"`
+	AffiliateID string `json:"affiliateId"`
+	Name        string `json:"name"`
+	Country     string `json:"country"`
+	Commission  int    `json:"commission"`
+	AddedBy     string `json:"addedBy"`
+	Depth       int    `json:"depth"`
+}
+
+type Tree struct {
+	ID         string `json:"id"`
+	CrmID      string `json:"crmId"`
+	Name       string `json:"name"`
+	Country    string `json:"country"`
+	Commission int    `json:"commission"`
+	Recruits   int    `json:"recruits"`
+	Children   []Tree `json:"children,omitempty"`
+}

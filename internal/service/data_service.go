@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -21,6 +22,8 @@ type DataService interface {
 	GetLeaderboard(ctx context.Context) ([]models.Leaderboard, error)
 	GetSubAffiliates(ctx context.Context, id string) ([]models.User, error)
 	GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error)
+	GetSubAffiliateTree(ctx context.Context, id string) (*models.Tree, error)
+	GetSubAffiliateList(ctx context.Context, id string) ([]models.TreeNode, error)
 }
 
 type dataService struct {
@@ -248,4 +251,65 @@ func (s *dataService) GetSubAffiliatePath(ctx context.Context, id string) ([]mod
 	}
 
 	return path, nil
+}
+
+func (s *dataService) GetSubAffiliateTree(ctx context.Context, id string) (*models.Tree, error) {
+	users, err := s.store.GetAllUsers(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	childrenMap := make(map[string][]models.TreeNode)
+	var rootUser *models.TreeNode
+
+	for i := range users {
+		u := users[i]
+		if u.AddedBy != "" {
+			childrenMap[u.AddedBy] = append(childrenMap[u.AddedBy], u)
+		}
+		if u.ID == id {
+			rootUser = &users[i]
+		}
+	}
+
+	if rootUser == nil {
+		return nil, fmt.Errorf("affiliate_id %s not found", id)
+	}
+
+	var buildTree func(user models.TreeNode) models.Tree
+	buildTree = func(user models.TreeNode) models.Tree {
+		children := make([]models.Tree, 0, len(childrenMap[user.ID]))
+		for _, child := range childrenMap[user.ID] {
+			children = append(children, buildTree(child))
+		}
+		return models.Tree{
+			ID:         user.ID,
+			CrmID:      "#" + user.AffiliateID,
+			Name:       user.Name,
+			Country:    user.Country,
+			Commission: user.Commission,
+			Recruits:   len(children),
+			Children:   children,
+		}
+	}
+
+	tree := buildTree(*rootUser)
+	return &tree, nil
+}
+
+func (s *dataService) GetSubAffiliateList(ctx context.Context, id string) ([]models.TreeNode, error) {
+	users, err := s.store.GetAllUsers(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var usersList []models.TreeNode
+
+	for _, user := range users {
+		if user.ID != id {
+			usersList = append(usersList, user)
+		}
+	}
+
+	return usersList, nil
 }

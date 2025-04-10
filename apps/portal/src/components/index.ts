@@ -16,6 +16,9 @@ import AddUpdateWalletDetails from "./Settings/AddUpdateWalletDetails";
 import { statisticsColumns } from "./Statistics/statisticsColumns";
 import AffiliatePath from "./SubAffiliates/AffiliatePath";
 import { subaffiliateColumns } from "./SubAffiliates/SubAffiliateColumns";
+import { subaffiliateColumnsList } from "./SubAffiliates/SubAffiliateColumnsList";
+import { AffiliateTreeView } from "./SubAffiliates/TreeView";
+import ViewButtons from "./SubAffiliates/ViewButtons";
 import { DataTable } from "./ui/data-table";
 import LoadingSpinner from "./ui/loading";
 import { weeklyCommissionColumn } from "./Weeklycommissions/commissionsColumns";
@@ -42,4 +45,7 @@ export {
   AddUpdateWalletDetails,
   AffiliatePath,
   subaffiliateColumns,
+  subaffiliateColumnsList,
+  AffiliateTreeView,
+  ViewButtons,
 };

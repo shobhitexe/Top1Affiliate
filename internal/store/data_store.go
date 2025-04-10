@@ -33,6 +33,7 @@ type DataStore interface {
 	GetSubAffiliates(ctx context.Context, id string) ([]models.User, error)
 
 	GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error)
+	GetAllUsers(ctx context.Context, id string) ([]models.TreeNode, error)
 }
 
 type dataStore struct {
@@ -70,7 +71,7 @@ func (s *dataStore) Getstatistics(ctx context.Context, id string) ([]models.Stat
 FROM leads l
 LEFT JOIN transactions t ON t.email = l.email
 WHERE l.affiliate_id = $1
-GROUP BY l.affiliate_id, l.first_name, l.last_name, l.country, l.registration_date;`
+GROUP BY l.affiliate_id, l.first_name, l.last_name, l.country, l.registration_date`
 
 	rows, err := s.db.Query(ctx, query, id)
 
@@ -322,19 +323,30 @@ func (s *dataStore) GetTransactions(ctx context.Context, id, from, to string) ([
 
 	var txns []models.CommissionTxn
 
-	query := `SELECT t.lead_id, l.first_name, l.country, t.email, 
-	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, commission_amount, t.transaction_type 
-FROM transactions t
-LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
-LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-WHERE t.affiliate_id = $1
-AND t.status = 'Complete'
-AND t.transaction_date BETWEEN $2 AND $3
-ORDER BY t.transaction_date DESC`
+	query := `SELECT 
+    c.lead_id AS commission_id,
+    CASE 
+        WHEN c.commission_type = 'sub' THEN l.first_name || ' (sub)'
+        ELSE l.first_name
+    END AS first_name,
+    l.country,
+    TO_CHAR(c.transaction_date, 'DD/MM/YYYY') AS txn_date_str,
+    c.commission_amount,
+    CASE 
+        WHEN c.transaction_type = 'deposit' THEN 'Deposit'
+        ELSE 'Withdrawal'
+    END AS transaction_type
+FROM commissions c
+LEFT JOIN leads l ON c.lead_id = l.id
+WHERE c.affiliate_id = $1
+AND c.transaction_date BETWEEN $2 AND $3
+ORDER BY c.transaction_date DESC;
+`
 
 	rows, err := s.db.Query(ctx, query, id, from, to)
 
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -347,11 +359,13 @@ ORDER BY t.transaction_date DESC`
 			&txn.LeadID,
 			&txn.Name,
 			&txn.Country,
-			&txn.Email,
 			&txn.Date,
 			&txn.Amount,
 			&txn.TxnType,
 		); err != nil {
+
+			log.Println(err)
+
 			return nil, err
 		}
 
@@ -365,15 +379,23 @@ func (s *dataStore) GetLatestFiveTransactions(ctx context.Context, id string) ([
 
 	var txns []models.CommissionTxn
 
-	query := `SELECT t.lead_id, l.first_name, l.country, t.email, 
-	TO_CHAR(t.transaction_date, 'DD/MM/YYYY') AS txn_date_str, commission_amount, t.transaction_type 
-FROM transactions t
-LEFT JOIN leads l ON t.affiliate_id = l.affiliate_id
-LEFT JOIN users u ON t.affiliate_id = u.affiliate_id
-WHERE t.affiliate_id = $1
-AND t.status = 'Complete'
-AND t.transaction_type = 'Deposit'
-ORDER BY t.transaction_date DESC
+	query := `SELECT 
+    c.lead_id AS commission_id,
+    CASE 
+        WHEN c.commission_type = 'sub' THEN l.first_name || ' (sub)'
+        ELSE l.first_name
+    END AS first_name,
+    l.country,
+    TO_CHAR(c.transaction_date, 'DD/MM/YYYY') AS txn_date_str,
+    c.commission_amount,
+    CASE 
+        WHEN c.transaction_type = 'deposit' THEN 'Deposit'
+        ELSE 'Withdrawal'
+    END AS transaction_type
+FROM commissions c
+LEFT JOIN leads l ON c.lead_id = l.id
+WHERE c.affiliate_id = $1
+ORDER BY c.transaction_date DESC
 LIMIT 5`
 
 	rows, err := s.db.Query(ctx, query, id)
@@ -391,7 +413,6 @@ LIMIT 5`
 			&txn.LeadID,
 			&txn.Name,
 			&txn.Country,
-			&txn.Email,
 			&txn.Date,
 			&txn.Amount,
 			&txn.TxnType,
@@ -501,6 +522,42 @@ ORDER BY id DESC`
 	}
 
 	return affiliates, nil
+}
+
+func (s *dataStore) GetAllUsers(ctx context.Context, id string) ([]models.TreeNode, error) {
+
+	query := `WITH RECURSIVE users_hierarchy AS (
+    SELECT id, affiliate_id, name, country, commission, added_by, 0 AS depth
+    FROM users 
+    WHERE id = $1
+
+    UNION ALL
+
+    SELECT u.id, u.affiliate_id, u.name, u.country, u.commission, u.added_by, uh.depth + 1
+    FROM users u
+    INNER JOIN users_hierarchy uh ON u.added_by = uh.id
+    WHERE uh.depth < 100
+)
+SELECT id, affiliate_id, name, country, commission, added_by, depth
+FROM users_hierarchy`
+
+	rows, err := s.db.Query(ctx, query, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+	defer rows.Close()
+
+	var users []models.TreeNode
+	for rows.Next() {
+		var u models.TreeNode
+		if err := rows.Scan(&u.ID, &u.AffiliateID, &u.Name, &u.Country, &u.Commission, &u.AddedBy, &u.Depth); err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
 }
 
 func (s *dataStore) GetSubAffiliatePath(ctx context.Context, id string) ([]models.AffiliatePath, error) {

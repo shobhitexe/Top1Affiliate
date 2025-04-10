@@ -202,3 +202,43 @@ func (h *DataHandler) GetAffiliatePath(w http.ResponseWriter, r *http.Request) {
 	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
 
 }
+
+func (h *DataHandler) GetAffiliateTree(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("id")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetSubAffiliateTree(r.Context(), id)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: err.Error(), Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}
+
+func (h *DataHandler) GetAffiliateList(w http.ResponseWriter, r *http.Request) {
+
+	id := r.URL.Query().Get("id")
+
+	if id == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error Reading id", Data: []any{}})
+		return
+	}
+
+	s, err := h.service.GetSubAffiliateList(r.Context(), id)
+
+	if err != nil {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: err.Error(), Data: []any{}})
+		return
+	}
+
+	h.utils.WriteJSON(w, http.StatusOK, models.Response{Message: "Fetched", Data: s})
+
+}

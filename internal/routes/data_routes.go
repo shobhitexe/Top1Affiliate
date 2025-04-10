@@ -26,6 +26,8 @@ func RegisterDataRoutes(r chi.Router, handler *handlers.DataHandler) {
 		r.Get("/sub", handler.GetSubAffiliates)
 
 		r.Get("/path", handler.GetAffiliatePath)
+		r.Get("/tree", handler.GetAffiliateTree)
+		r.Get("/list", handler.GetAffiliateList)
 	})
 
 }

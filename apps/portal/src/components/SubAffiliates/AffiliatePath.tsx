@@ -23,7 +23,7 @@ export default async function AffiliatePath({
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/sub-affiliates/${session?.user.id}`}>
+            <BreadcrumbLink href={`/sub-affiliates/${session?.user.id}/table`}>
               <Home className="w-4 h-4" />
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -33,7 +33,7 @@ export default async function AffiliatePath({
           {path.map((item, index) => (
             <BreadcrumbItem key={item.id}>
               {index < path.length - 1 ? (
-                <BreadcrumbLink href={`/sub-affiliates/${item.id}`}>
+                <BreadcrumbLink href={`/sub-affiliates/${item.id}/table`}>
                   {item.name}
                 </BreadcrumbLink>
               ) : (

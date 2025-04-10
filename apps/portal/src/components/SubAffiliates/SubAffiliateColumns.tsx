@@ -12,7 +12,7 @@ export const subaffiliateColumns: ColumnDef<unknown>[] = [
       const id = row.getValue("id") as string;
 
       return (
-        <Link href={`/sub-affiliates/${id}`} className={`underline`}>
+        <Link href={`/sub-affiliates/${id}/table`} className={`underline`}>
           #{affiliateId}
         </Link>
       );
