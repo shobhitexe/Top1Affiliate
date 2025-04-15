@@ -15,6 +15,7 @@ type AdminStore interface {
 	AddAffiliate(ctx context.Context, payload models.AddAffiliate) error
 	BlockAffiliate(ctx context.Context, id string) error
 	EditAffiliate(ctx context.Context, payload models.EditAffiliate) error
+	EditAffiliateWithPassword(ctx context.Context, payload models.EditAffiliate) error
 	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
 	DeclinePayout(ctx context.Context, id string) error
 	ApprovePayout(ctx context.Context, id string, amount float64) error
@@ -146,6 +147,26 @@ func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffil
 		payload.ClientLink,
 		payload.SubLink,
 		payload.Balance,
+		payload.ID,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *adminStore) EditAffiliateWithPassword(ctx context.Context, payload models.EditAffiliate) error {
+
+	query := `UPDATE users SET name = $1, country = $2, commission = $3, client_link = $4, sub_link = $5, balance = $6, password = $7 WHERE id = $8`
+
+	if _, err := s.db.Exec(ctx, query,
+		payload.Name,
+		payload.Country,
+		payload.Commission,
+		payload.ClientLink,
+		payload.SubLink,
+		payload.Balance,
+		payload.Password,
 		payload.ID,
 	); err != nil {
 		return err

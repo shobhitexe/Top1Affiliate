@@ -25,6 +25,7 @@ type EditAffiliate struct {
 	ClientLink string  `json:"Clientlink"`
 	SubLink    string  `json:"Sublink"`
 	Balance    float64 `json:"balance"`
+	Password   string  `json:"password"`
 }
 
 type AffiliatePath struct {

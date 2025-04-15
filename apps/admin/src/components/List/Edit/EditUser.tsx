@@ -24,6 +24,7 @@ export default function EditUser({
       Clientlink: formData.get("Clientlink") || "",
       Sublink: formData.get("Sublink") || "",
       balance: formData.get("balance") || 0,
+      password: formData.get("password") || "",
     };
 
     try {
@@ -34,6 +35,7 @@ export default function EditUser({
         updatedAffiliate.Clientlink as string,
         updatedAffiliate.Sublink as string,
         updatedAffiliate.balance as number,
+        updatedAffiliate.password as string,
         id
       );
 
@@ -137,6 +139,16 @@ export default function EditUser({
           placeholder="Balance"
           step={0.01}
           defaultValue={affiliate.balance}
+        />
+      </div>
+
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          type="text"
+          id="password"
+          name="password"
+          placeholder="Password"
         />
       </div>
 

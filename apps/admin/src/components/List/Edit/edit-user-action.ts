@@ -10,6 +10,7 @@ export async function EditUserAction(
   Clientlink: string,
   Sublink: string,
   balance: number,
+  password: string,
   id: string
 ) {
   try {
@@ -23,6 +24,7 @@ export async function EditUserAction(
         Clientlink,
         Sublink,
         balance: Number(balance),
+        password,
       }),
     });
 

@@ -92,8 +92,22 @@ func (s *adminSevice) BlockAffiliate(ctx context.Context, id string) error {
 
 func (s *adminSevice) EditAffiliate(ctx context.Context, payload models.EditAffiliate) error {
 
-	if err := s.store.EditAffiliate(ctx, payload); err != nil {
-		return err
+	if payload.Password == "" {
+		if err := s.store.EditAffiliate(ctx, payload); err != nil {
+			return err
+		}
+	} else {
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		payload.Password = string(hashedPassword)
+
+		if err := s.store.EditAffiliateWithPassword(ctx, payload); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
