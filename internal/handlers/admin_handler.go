@@ -130,6 +130,11 @@ func (h *AdminHandler) AddAffiliate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if payload.Link == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
 	if err := h.service.AddAffiliate(r.Context(), payload); err != nil {
 		log.Println(err)
 		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Error", Data: false})
@@ -203,6 +208,11 @@ func (h *AdminHandler) EditAffiliate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if payload.Name == "" {
+		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
+		return
+	}
+
+	if payload.Link == "" {
 		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
 		return
 	}

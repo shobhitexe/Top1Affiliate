@@ -5,6 +5,7 @@ type sessionUser = {
   id?: string;
   affiliateId?: string;
   commission?: number;
+  link?: string;
 
   name?: string | null | undefined;
   email?: string | null | undefined;

@@ -21,6 +21,7 @@ export default function EditUser({
       name: formData.get("name") || "",
       country: formData.get("country") || "",
       commission: formData.get("commission") || "",
+      link: formData.get("link") || "",
     };
 
     try {
@@ -28,6 +29,7 @@ export default function EditUser({
         updatedAffiliate.name as string,
         updatedAffiliate.country as string,
         Number(updatedAffiliate.commission),
+        updatedAffiliate.link as string,
         id
       );
 
@@ -96,6 +98,17 @@ export default function EditUser({
             defaultValue={affiliate.commission}
           />
         </div>
+      </div>
+
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="link">Affiliate Link</Label>
+        <Input
+          type="text"
+          id="link"
+          name="link"
+          placeholder="link"
+          defaultValue={affiliate.link}
+        />
       </div>
 
       <Button size={"lg"} className="mt-5 sm:w-fit">

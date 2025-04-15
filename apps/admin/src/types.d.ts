@@ -24,6 +24,7 @@ type Affiliate = {
   affiliateId: string;
   country: string;
   commission: number;
+  link: string;
 };
 
 type WeeklyStatsData = {

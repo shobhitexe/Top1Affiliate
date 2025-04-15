@@ -1,21 +1,24 @@
+import { getServerSession } from "next-auth";
 import { Button } from "../ui/button";
+import { options } from "@/app/api/auth/[...nextauth]/options";
 
-const Links = [
-  {
-    title: "Client Referral Link",
-    link: "https://top1ffiliate.tilda.ws/refferral/df32ij23n",
-    description:
-      "Share your referral link by copying and sending it to your Clients or sharing it on Social media.",
-  },
-  {
-    title: "Affiliate Referral Link",
-    link: "https://top1ffiliate.tilda.ws/refferral/df32ij23n",
-    description:
-      "You can also share your referral link by copying and sending it to your Affilliates or sharing it on Social media.",
-  },
-];
+export default async function ReferralLinks() {
+  const session = await getServerSession(options);
 
-export default function ReferralLinks() {
+  const Links = [
+    {
+      title: "Client Referral Link",
+      link: `${session?.user.link}`,
+      description:
+        "Share your referral link by copying and sending it to your Clients or sharing it on Social media.",
+    },
+    {
+      title: "Affiliate Referral Link",
+      link: `${session?.user.link}`,
+      description:
+        "You can also share your referral link by copying and sending it to your Affilliates or sharing it on Social media.",
+    },
+  ];
   return (
     <div className="bg-white shadow-sm rounded-2xl p-4 flex flex-col gap-6">
       {Links.map((item) => (

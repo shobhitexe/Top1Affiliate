@@ -81,7 +81,7 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 	var affiliate models.User
 
-	query := `SELECT id, affiliate_id, name, commission, country, blocked FROM users WHERE id = $1`
+	query := `SELECT id, affiliate_id, name, commission, country, blocked, link FROM users WHERE id = $1`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(&affiliate.ID,
 		&affiliate.AffiliateID,
@@ -89,6 +89,7 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 		&affiliate.Commission,
 		&affiliate.Country,
 		&affiliate.Blocked,
+		&affiliate.Link,
 	); err != nil {
 
 		return nil, err
@@ -99,7 +100,8 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffiliate) error {
 
-	query := `INSERT INTO users (name, affiliate_id, password, commission, country, added_by) VALUES ($1, $2, $3, $4, $5, $6)`
+	query := `INSERT INTO users (name, affiliate_id, password, commission, country, added_by, link) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err := s.db.Exec(ctx, query,
 		payload.Name,
@@ -108,6 +110,7 @@ func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffilia
 		payload.Commission,
 		payload.Country,
 		payload.AddedBy,
+		payload.Link,
 	)
 
 	if err != nil {
@@ -133,9 +136,9 @@ func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffil
 
 	log.Println(payload)
 
-	query := `UPDATE users SET name = $1, country = $2, commission = $3 WHERE id = $4`
+	query := `UPDATE users SET name = $1, country = $2, commission = $3, link = $4 WHERE id = $5`
 
-	if _, err := s.db.Exec(ctx, query, payload.Name, payload.Country, payload.Commission, payload.ID); err != nil {
+	if _, err := s.db.Exec(ctx, query, payload.Name, payload.Country, payload.Commission, payload.Link, payload.ID); err != nil {
 		return err
 	}
 

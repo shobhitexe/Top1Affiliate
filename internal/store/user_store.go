@@ -28,9 +28,9 @@ func (s *userStore) GetUserFromID(ctx context.Context, id string) (*models.User,
 
 	var user models.User
 
-	query := `SELECT id, affiliate_id, password, name, commission FROM users WHERE affiliate_id = $1`
+	query := `SELECT id, affiliate_id, password, name, commission, link FROM users WHERE affiliate_id = $1`
 
-	if err := s.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.AffiliateID, &user.Password, &user.Name, &user.Commission); err != nil {
+	if err := s.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.AffiliateID, &user.Password, &user.Name, &user.Commission, &user.Link); err != nil {
 		log.Println(err)
 		return nil, err
 	}

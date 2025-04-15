@@ -34,6 +34,7 @@ export default function AddAffiliate() {
     country: "",
     password: "",
     commission: 0,
+    link: "",
   });
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function AddAffiliate() {
         country: "",
         password: "",
         commission: 0,
+        link: "",
       });
     } catch (error) {
       console.log(error);
@@ -140,6 +142,24 @@ export default function AddAffiliate() {
             }
           />
         </div>
+      </div>
+
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="link">Link</Label>
+        <Input
+          name="link"
+          type="text"
+          id="link"
+          placeholder="Affiliate Link"
+          required
+          value={data.link}
+          onChange={(e) =>
+            setData((prev) => ({
+              ...prev,
+              link: e.target.value,
+            }))
+          }
+        />
       </div>
 
       <div className="grid w-full items-center gap-1.5">
