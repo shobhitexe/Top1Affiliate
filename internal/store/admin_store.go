@@ -81,11 +81,12 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 	var affiliate models.User
 
-	query := `SELECT id, affiliate_id, name, commission, country, blocked, client_link, sub_link FROM users WHERE id = $1`
+	query := `SELECT id, affiliate_id, name, balance, commission, country, blocked, client_link, sub_link FROM users WHERE id = $1`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(&affiliate.ID,
 		&affiliate.AffiliateID,
 		&affiliate.Name,
+		&affiliate.Balance,
 		&affiliate.Commission,
 		&affiliate.Country,
 		&affiliate.Blocked,
@@ -136,7 +137,7 @@ func (s *adminStore) BlockAffiliate(ctx context.Context, id string) error {
 
 func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffiliate) error {
 
-	query := `UPDATE users SET name = $1, country = $2, commission = $3, client_link = $4, sub_link = $5 WHERE id = $6`
+	query := `UPDATE users SET name = $1, country = $2, commission = $3, client_link = $4, sub_link = $5, balance = $6 WHERE id = $7`
 
 	if _, err := s.db.Exec(ctx, query,
 		payload.Name,
@@ -144,6 +145,7 @@ func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffil
 		payload.Commission,
 		payload.ClientLink,
 		payload.SubLink,
+		payload.Balance,
 		payload.ID,
 	); err != nil {
 		return err

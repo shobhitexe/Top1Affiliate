@@ -9,6 +9,7 @@ export async function EditUserAction(
   commission: number,
   Clientlink: string,
   Sublink: string,
+  balance: number,
   id: string
 ) {
   try {
@@ -21,6 +22,7 @@ export async function EditUserAction(
         id,
         Clientlink,
         Sublink,
+        balance: Number(balance),
       }),
     });
 

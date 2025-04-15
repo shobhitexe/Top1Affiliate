@@ -26,6 +26,7 @@ type Affiliate = {
   commission: number;
   Clientlink: string;
   Sublink: string;
+  balance: number;
 };
 
 type WeeklyStatsData = {

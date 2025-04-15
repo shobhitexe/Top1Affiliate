@@ -198,6 +198,7 @@ func (h *AdminHandler) EditAffiliate(w http.ResponseWriter, r *http.Request) {
 	var payload models.EditAffiliate
 
 	if err := json.Unmarshal(body, &payload); err != nil {
+		log.Println(err)
 		h.utils.WriteJSON(w, http.StatusInternalServerError, models.Response{Message: "Failed to read body", Data: false})
 		return
 	}

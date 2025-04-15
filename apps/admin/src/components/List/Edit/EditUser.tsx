@@ -23,6 +23,7 @@ export default function EditUser({
       commission: formData.get("commission") || "",
       Clientlink: formData.get("Clientlink") || "",
       Sublink: formData.get("Sublink") || "",
+      balance: formData.get("balance") || 0,
     };
 
     try {
@@ -32,6 +33,7 @@ export default function EditUser({
         Number(updatedAffiliate.commission),
         updatedAffiliate.Clientlink as string,
         updatedAffiliate.Sublink as string,
+        updatedAffiliate.balance as number,
         id
       );
 
@@ -124,6 +126,18 @@ export default function EditUser({
             defaultValue={affiliate.Sublink}
           />
         </div>
+      </div>
+
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="balance">Balance</Label>
+        <Input
+          type="number"
+          id="balance"
+          name="balance"
+          placeholder="Balance"
+          step={0.01}
+          defaultValue={affiliate.balance}
+        />
       </div>
 
       <Button size={"lg"} className="mt-5 sm:w-fit">

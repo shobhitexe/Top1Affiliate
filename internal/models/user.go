@@ -1,15 +1,16 @@
 package models
 
 type User struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	AffiliateID string `json:"affiliateId"`
-	Password    string `json:"-"`
-	Country     string `json:"country"`
-	Commission  int    `json:"commission"`
-	Blocked     bool   `json:"blocked"`
-	ClientLink  string `json:"Clientlink"`
-	SubLink     string `json:"Sublink"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	AffiliateID string  `json:"affiliateId"`
+	Balance     float64 `json:"balance"`
+	Password    string  `json:"-"`
+	Country     string  `json:"country"`
+	Commission  int     `json:"commission"`
+	Blocked     bool    `json:"blocked"`
+	ClientLink  string  `json:"Clientlink"`
+	SubLink     string  `json:"Sublink"`
 }
 
 type LoginRequest struct {
