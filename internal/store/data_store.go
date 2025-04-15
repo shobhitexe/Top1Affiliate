@@ -235,8 +235,14 @@ transaction_stats AS (
         c.affiliate_id,
         ROUND(SUM(CASE WHEN c.transaction_type = 'deposit' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_deposits,
         ROUND(SUM(CASE WHEN c.transaction_type = 'withdraw' THEN COALESCE(c.amount, 0) ELSE 0 END), 2) AS total_withdrawals,
-        SUM(commission_amount) AS total_commissions,
-		COUNT(DISTINCT(lead_id)) AS ftds
+        ROUND(SUM(
+        CASE 
+            WHEN c.transaction_type = 'deposit' THEN COALESCE(c.commission_amount, 0)
+            WHEN c.transaction_type = 'withdraw' THEN -COALESCE(c.commission_amount, 0)
+            ELSE 0
+        END
+    ), 2) AS total_commissions,
+	COUNT(DISTINCT(lead_id)) AS ftds
     FROM commissions c
     WHERE c.original_affiliate_id = $1
     GROUP BY c.affiliate_id
