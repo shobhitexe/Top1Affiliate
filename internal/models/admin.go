@@ -13,7 +13,8 @@ type AddAffiliate struct {
 	Country     string `json:"country"`
 	Commission  int    `json:"commission"`
 	Password    string `json:"password"`
-	Link        string `json:"link"`
+	ClientLink  string `json:"Clientlink"`
+	SubLink     string `json:"Sublink"`
 }
 
 type EditAffiliate struct {
@@ -21,7 +22,8 @@ type EditAffiliate struct {
 	Name       string `json:"name"`
 	Country    string `json:"country"`
 	Commission int    `json:"commission"`
-	Link       string `json:"link"`
+	ClientLink string `json:"Clientlink"`
+	SubLink    string `json:"Sublink"`
 }
 
 type AffiliatePath struct {

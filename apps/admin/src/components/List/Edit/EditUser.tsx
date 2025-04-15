@@ -21,7 +21,8 @@ export default function EditUser({
       name: formData.get("name") || "",
       country: formData.get("country") || "",
       commission: formData.get("commission") || "",
-      link: formData.get("link") || "",
+      Clientlink: formData.get("Clientlink") || "",
+      Sublink: formData.get("Sublink") || "",
     };
 
     try {
@@ -29,7 +30,8 @@ export default function EditUser({
         updatedAffiliate.name as string,
         updatedAffiliate.country as string,
         Number(updatedAffiliate.commission),
-        updatedAffiliate.link as string,
+        updatedAffiliate.Clientlink as string,
+        updatedAffiliate.Sublink as string,
         id
       );
 
@@ -100,15 +102,28 @@ export default function EditUser({
         </div>
       </div>
 
-      <div className="grid w-full items-center gap-1.5">
-        <Label htmlFor="link">Affiliate Link</Label>
-        <Input
-          type="text"
-          id="link"
-          name="link"
-          placeholder="link"
-          defaultValue={affiliate.link}
-        />
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid w-full items-center gap-1.5">
+          <Label htmlFor="Clientlink">Client Affiliate Link</Label>
+          <Input
+            type="text"
+            id="Clientlink"
+            name="Clientlink"
+            placeholder="client link"
+            defaultValue={affiliate.Clientlink}
+          />
+        </div>
+
+        <div className="grid w-full items-center gap-1.5">
+          <Label htmlFor="Sublink">Sub Affiliate Link</Label>
+          <Input
+            type="text"
+            id="Sublink"
+            name="Sublink"
+            placeholder="sub link"
+            defaultValue={affiliate.Sublink}
+          />
+        </div>
       </div>
 
       <Button size={"lg"} className="mt-5 sm:w-fit">

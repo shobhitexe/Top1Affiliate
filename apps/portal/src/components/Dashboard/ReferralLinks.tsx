@@ -8,13 +8,13 @@ export default async function ReferralLinks() {
   const Links = [
     {
       title: "Client Referral Link",
-      link: `${session?.user.link}`,
+      link: `${session?.user.Clientlink}`,
       description:
         "Share your referral link by copying and sending it to your Clients or sharing it on Social media.",
     },
     {
       title: "Affiliate Referral Link",
-      link: `${session?.user.link}`,
+      link: `${session?.user.Sublink}`,
       description:
         "You can also share your referral link by copying and sending it to your Affilliates or sharing it on Social media.",
     },

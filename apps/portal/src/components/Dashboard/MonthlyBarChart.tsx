@@ -94,7 +94,7 @@ export function MonthlyBarChart({ sales }: { sales: MonthlySalesOverview[] }) {
           className="leading-none text-muted-foreground
         "
         >
-          (<span className="text-[#48BB78]">+23</span>) than last Month
+          {/* (<span className="text-[#48BB78]">+23</span>) than last Month */}
         </div>
       </CardFooter>
     </Card>

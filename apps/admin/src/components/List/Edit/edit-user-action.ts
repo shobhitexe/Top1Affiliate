@@ -7,13 +7,21 @@ export async function EditUserAction(
   name: string,
   country: string,
   commission: number,
-  link: string,
+  Clientlink: string,
+  Sublink: string,
   id: string
 ) {
   try {
     const res = await fetch(`${BackendURL}/api/v1/admin/edit`, {
       method: "POST",
-      body: JSON.stringify({ name, country, commission, id, link }),
+      body: JSON.stringify({
+        name,
+        country,
+        commission,
+        id,
+        Clientlink,
+        Sublink,
+      }),
     });
 
     if (res.status !== 200) {

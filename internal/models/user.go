@@ -8,7 +8,8 @@ type User struct {
 	Country     string `json:"country"`
 	Commission  int    `json:"commission"`
 	Blocked     bool   `json:"blocked"`
-	Link        string `json:"link"`
+	ClientLink  string `json:"Clientlink"`
+	SubLink     string `json:"Sublink"`
 }
 
 type LoginRequest struct {

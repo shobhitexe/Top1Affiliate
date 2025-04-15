@@ -81,7 +81,7 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 	var affiliate models.User
 
-	query := `SELECT id, affiliate_id, name, commission, country, blocked, link FROM users WHERE id = $1`
+	query := `SELECT id, affiliate_id, name, commission, country, blocked, client_link, sub_link FROM users WHERE id = $1`
 
 	if err := s.db.QueryRow(ctx, query, id).Scan(&affiliate.ID,
 		&affiliate.AffiliateID,
@@ -89,7 +89,8 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 		&affiliate.Commission,
 		&affiliate.Country,
 		&affiliate.Blocked,
-		&affiliate.Link,
+		&affiliate.ClientLink,
+		&affiliate.SubLink,
 	); err != nil {
 
 		return nil, err
@@ -100,8 +101,8 @@ func (s *adminStore) GetAffiliate(ctx context.Context, id string) (*models.User,
 
 func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffiliate) error {
 
-	query := `INSERT INTO users (name, affiliate_id, password, commission, country, added_by, link) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	query := `INSERT INTO users (name, affiliate_id, password, commission, country, added_by, client_link, sub_link) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := s.db.Exec(ctx, query,
 		payload.Name,
@@ -110,7 +111,8 @@ func (s *adminStore) AddAffiliate(ctx context.Context, payload models.AddAffilia
 		payload.Commission,
 		payload.Country,
 		payload.AddedBy,
-		payload.Link,
+		payload.ClientLink,
+		payload.SubLink,
 	)
 
 	if err != nil {
@@ -134,11 +136,16 @@ func (s *adminStore) BlockAffiliate(ctx context.Context, id string) error {
 
 func (s *adminStore) EditAffiliate(ctx context.Context, payload models.EditAffiliate) error {
 
-	log.Println(payload)
+	query := `UPDATE users SET name = $1, country = $2, commission = $3, client_link = $4, sub_link = $5 WHERE id = $6`
 
-	query := `UPDATE users SET name = $1, country = $2, commission = $3, link = $4 WHERE id = $5`
-
-	if _, err := s.db.Exec(ctx, query, payload.Name, payload.Country, payload.Commission, payload.Link, payload.ID); err != nil {
+	if _, err := s.db.Exec(ctx, query,
+		payload.Name,
+		payload.Country,
+		payload.Commission,
+		payload.ClientLink,
+		payload.SubLink,
+		payload.ID,
+	); err != nil {
 		return err
 	}
 

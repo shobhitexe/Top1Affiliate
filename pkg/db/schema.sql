@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     balance NUMERIC(18,2) NOT NULL DEFAULT 0,
     country TEXT,
     added_by INTEGER,
-    link TEXT NOT NULL,
+    client_link TEXT NOT NULL,
+    sub_link TEXT NOT NULL,
     blocked BOOLEAN NOT NULL DEFAULT FALSE,
 )
 

@@ -34,7 +34,8 @@ export default function AddAffiliate() {
     country: "",
     password: "",
     commission: 0,
-    link: "",
+    Clientlink: "",
+    Sublink: "",
   });
 
   useEffect(() => {
@@ -60,7 +61,8 @@ export default function AddAffiliate() {
         country: "",
         password: "",
         commission: 0,
-        link: "",
+        Clientlink: "",
+        Sublink: "",
       });
     } catch (error) {
       console.log(error);
@@ -144,22 +146,41 @@ export default function AddAffiliate() {
         </div>
       </div>
 
-      <div className="grid w-full items-center gap-1.5">
-        <Label htmlFor="link">Link</Label>
-        <Input
-          name="link"
-          type="text"
-          id="link"
-          placeholder="Affiliate Link"
-          required
-          value={data.link}
-          onChange={(e) =>
-            setData((prev) => ({
-              ...prev,
-              link: e.target.value,
-            }))
-          }
-        />
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid w-full items-center gap-1.5">
+          <Label htmlFor="link">Client Affiliate Link</Label>
+          <Input
+            name="link"
+            type="text"
+            id="link"
+            placeholder="Client Affiliate Link"
+            required
+            value={data.Clientlink}
+            onChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                Clientlink: e.target.value,
+              }))
+            }
+          />
+        </div>
+        <div className="grid w-full items-center gap-1.5">
+          <Label htmlFor="link">Sub Affiliate Link</Label>
+          <Input
+            name="link"
+            type="text"
+            id="link"
+            placeholder="Sub Affiliate Link"
+            required
+            value={data.Sublink}
+            onChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                Sublink: e.target.value,
+              }))
+            }
+          />
+        </div>
       </div>
 
       <div className="grid w-full items-center gap-1.5">
