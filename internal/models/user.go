@@ -55,3 +55,12 @@ type WalletDetails struct {
 	ChainName     string `json:"chainName"`
 	WalletAddress string `json:"walletAddress"`
 }
+
+type InactiveUser struct {
+	ID                string
+	Name              string
+	AffiliateID       string
+	Country           string
+	LastDepositDate   string
+	LastDepositAmount float64
+}

@@ -8,5 +8,7 @@ const (
 	WithdrawalRequested   = "https://hooks.slack.com/services/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"
 	WithdrawalSuccessfull = "https://hooks.slack.com/services/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"
 
-	Test = "https://hooks.slack.com/services/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"
+	InactiveAffiliates = "https://hooks.slack.com/services/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"
+
+	Test = "https://hooks.slack.com/services/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"
 )

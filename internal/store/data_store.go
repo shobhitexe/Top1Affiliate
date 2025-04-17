@@ -36,6 +36,8 @@ type DataStore interface {
 	GetAllUsers(ctx context.Context, id string) ([]models.TreeNode, error)
 
 	GetMonthlySalesOverview(ctx context.Context, id string) ([]models.MonthlySalesOverview, error)
+
+	InactiveAffiliates(ctx context.Context) ([]models.InactiveUser, error)
 }
 
 type dataStore struct {
@@ -657,6 +659,64 @@ ORDER BY EXTRACT(MONTH FROM transaction_date)`
 
 	return sales, nil
 
+}
+
+func (s *dataStore) InactiveAffiliates(ctx context.Context) ([]models.InactiveUser, error) {
+
+	var affiliates []models.InactiveUser
+
+	query := `WITH last_deposits AS (
+    SELECT DISTINCT ON (u.id)
+        u.id,
+        u.affiliate_id,
+        u.name,
+        u.country,
+		COALESCE(TO_CHAR(c.transaction_date, 'DD/MM/YYYY'), 'N/A') AS last_deposit_date_str,
+        c.transaction_date AS last_deposit_date,
+        COALESCE(c.amount, 0 ) AS last_deposit_amount
+    FROM users u
+    LEFT JOIN commissions c 
+        ON c.original_affiliate_id = u.affiliate_id
+        AND c.transaction_type = 'deposit'
+    ORDER BY u.id, c.transaction_date DESC
+)
+SELECT 
+        id,
+        affiliate_id,
+        name,
+        country,
+		last_deposit_date_str,
+        last_deposit_amount
+FROM last_deposits
+WHERE last_deposit_date IS NULL 
+   OR last_deposit_date < NOW() - INTERVAL '14 days'`
+
+	rows, err := s.db.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+
+		var affiliate models.InactiveUser
+
+		if err := rows.Scan(
+			&affiliate.ID,
+			&affiliate.AffiliateID,
+			&affiliate.Name,
+			&affiliate.Country,
+			&affiliate.LastDepositDate,
+			&affiliate.LastDepositAmount,
+		); err != nil {
+			return nil, err
+		}
+
+		affiliates = append(affiliates, affiliate)
+
+	}
+
+	return affiliates, nil
 }
 
 // For Processing Data From API
