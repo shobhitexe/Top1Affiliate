@@ -35,7 +35,7 @@ func NewContainer(db *pgxpool.Pool) *Container {
 
 	//cron
 	ctx := context.Background()
-	c := cron.NewCronScheduler(datastore)
+	c := cron.NewCronScheduler(datastore, utils)
 	c.StartCron(ctx)
 
 	return &Container{

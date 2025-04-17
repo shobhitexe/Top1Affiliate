@@ -51,6 +51,30 @@ func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate s
 			log.Println("Error saving lead:", err)
 			return err
 		}
+
+		go func() {
+			message := fmt.Sprintf(`New Registration
+
+			Crm ID: %s
+			Name: %s
+			Country: %s
+			Email: %s
+			Registration date: %s
+			Aff id: %s`,
+				lead.LeadGuid,
+				lead.FirstName,
+				lead.Country,
+				lead.Email,
+				lead.RegistrationDate,
+				lead.AffiliateID,
+			)
+
+			if err := c.utils.SendNotificationToSlack(ctx, models.Newregistrations, message); err != nil {
+				log.Println(err)
+				return
+			}
+		}()
+
 	}
 
 	log.Printf("Fetched %d leads between %s and %s", len(responseData), minDate, maxDate)

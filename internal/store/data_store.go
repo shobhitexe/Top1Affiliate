@@ -1,10 +1,14 @@
 package store
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
+	"net/http"
+	"os"
 	"time"
 	"top1affiliate/internal/models"
 
@@ -1055,6 +1059,39 @@ func (s *dataStore) RecordTransaction(ctx context.Context, amount, commission fl
 		log.Println(err)
 		return err
 	}
+
+	return nil
+}
+
+func sendNotificationToSlack(ctx context.Context, message string) error {
+
+	url := os.Getenv("WEBHOOK_URL")
+
+	payload := map[string]interface{}{
+		"channel":    "#general",
+		"username":   "webhookbot",
+		"text":       message,
+		"icon_emoji": ":ghost:",
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
 	return nil
 }

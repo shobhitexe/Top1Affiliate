@@ -60,6 +60,8 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 				break
 			}
 
+			log.Println(data)
+
 			if err := c.store.SaveTransactionsAndUpdateBalanceDeposit(ctx, data, e.Email, e.AffiliateID); err != nil {
 				log.Println(err)
 				break

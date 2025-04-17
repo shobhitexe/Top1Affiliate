@@ -5,14 +5,16 @@ import (
 	"log"
 	"time"
 	"top1affiliate/internal/store"
+	"top1affiliate/pkg/utils"
 )
 
 type Cron struct {
 	store store.DataStore
+	utils utils.Utils
 }
 
-func NewCronScheduler(store store.DataStore) *Cron {
-	return &Cron{store: store}
+func NewCronScheduler(store store.DataStore, utils utils.Utils) *Cron {
+	return &Cron{store: store, utils: utils}
 }
 
 func (c *Cron) StartCron(ctx context.Context) {
