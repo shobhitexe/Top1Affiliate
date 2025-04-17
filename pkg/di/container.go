@@ -27,11 +27,11 @@ func NewContainer(db *pgxpool.Pool) *Container {
 
 	//user
 	userstore := store.NewUserStore(db)
-	userservice := service.NewUserService(userstore)
+	userservice := service.NewUserService(userstore, utils)
 
 	//admin
 	adminStore := store.NewAdminStore(db)
-	adminService := service.NewAdminService(adminStore)
+	adminService := service.NewAdminService(adminStore, utils)
 
 	//cron
 	ctx := context.Background()

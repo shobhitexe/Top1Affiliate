@@ -18,7 +18,7 @@ type AdminStore interface {
 	EditAffiliateWithPassword(ctx context.Context, payload models.EditAffiliate) error
 	GetPayouts(ctx context.Context, typevar string) ([]models.Payouts, error)
 	DeclinePayout(ctx context.Context, id string) error
-	ApprovePayout(ctx context.Context, id string, amount float64) error
+	ApprovePayout(ctx context.Context, id string, amount float64) (string, error)
 }
 
 type adminStore struct {
@@ -180,9 +180,15 @@ func (s *adminStore) GetPayouts(ctx context.Context, typevar string) ([]models.P
 	var payouts []models.Payouts
 
 	query := `SELECT p.id, u.name, u.affiliate_id, p.amount, p.method, p.payout_type, p.status, 
-       TO_CHAR(p.created_at, 'DD/MM/YYYY') AS created_at_str
+       TO_CHAR(p.created_at, 'DD/MM/YYYY') AS created_at_str,
+	   COALESCE(wd.iban_number , 'N/A') AS iban_number,
+	   COALESCE(wd.swift_code , 'N/A') AS swift_code,
+	   COALESCE(wd.bank_name , 'N/A') AS bank_name,
+	   COALESCE(wd.chain_name , 'N/A') AS chain_name,
+	   COALESCE(wd.wallet_address , 'N/A') AS wallet_address
 FROM payouts p
 LEFT JOIN users u ON u.id = p.user_id
+LEFT JOIN wallet_details wd ON wd.user_id = p.user_id
 WHERE LOWER(p.status) = LOWER($1)
 ORDER BY p.created_at DESC
 `
@@ -190,6 +196,7 @@ ORDER BY p.created_at DESC
 	rows, err := s.db.Query(ctx, query, typevar)
 
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -207,6 +214,11 @@ ORDER BY p.created_at DESC
 			&payout.Type,
 			&payout.Status,
 			&payout.CreatedAt,
+			&payout.IBAN,
+			&payout.SwiftCode,
+			&payout.BankName,
+			&payout.ChainName,
+			&payout.WalletAddress,
 		); err != nil {
 			return nil, err
 		}
@@ -231,11 +243,11 @@ func (s *adminStore) DeclinePayout(ctx context.Context, id string) error {
 
 }
 
-func (s *adminStore) ApprovePayout(ctx context.Context, id string, amount float64) error {
+func (s *adminStore) ApprovePayout(ctx context.Context, id string, amount float64) (string, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		log.Println("Failed to start transaction:", err)
-		return err
+		return "", err
 	}
 
 	defer func() {
@@ -250,14 +262,14 @@ func (s *adminStore) ApprovePayout(ctx context.Context, id string, amount float6
 	query1 := `UPDATE payouts SET status = 'PAID' WHERE id = $1 RETURNING user_id`
 	if err = tx.QueryRow(ctx, query1, id).Scan(&userId); err != nil {
 		log.Println("ApprovePayout query failed:", err)
-		return err
+		return "", err
 	}
 
 	query2 := `UPDATE users SET balance = balance - $2 WHERE id = $1`
 	if _, err = tx.Exec(ctx, query2, userId, amount); err != nil {
 		log.Println("DebitUser query failed:", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return userId, nil
 }

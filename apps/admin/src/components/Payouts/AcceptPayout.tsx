@@ -12,9 +12,27 @@ import { AcceptPayoutAction } from "./payout-action";
 export default function AcceptPayout({
   id,
   amount,
+
+  method,
+
+  iban,
+  swiftCode,
+  bankName,
+
+  chainName,
+  walletAddress,
 }: {
   id: string;
   amount: number;
+
+  method: string;
+
+  iban: string;
+  swiftCode: string;
+  bankName: string;
+
+  chainName: string;
+  walletAddress: string;
 }) {
   const { toast } = useToast();
 
@@ -44,6 +62,22 @@ export default function AcceptPayout({
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <div className="pt-5" />
           <div>Approve payout of ${amount}</div>
+
+          <div className="pt-5" />
+          {method === "bank" ? (
+            <div>
+              <div>IBAN: {iban}</div>
+              <div>SWIFT CODE: {swiftCode}</div>
+              <div>BANK NAME: {bankName}</div>
+            </div>
+          ) : (
+            <div>
+              <div>CHAIN NAME: {chainName}</div>
+              <div>WALLET ADDRESS: {walletAddress}</div>
+            </div>
+          )}
+
+          <div className="pt-5" />
           <Button onClick={AcceptPayoutClient} className="mt-5">
             Approve
           </Button>

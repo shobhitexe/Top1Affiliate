@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 	"top1affiliate/internal/models"
 )
 
@@ -60,7 +61,68 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 				break
 			}
 
-			log.Println(data)
+			go func() {
+
+				gCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				for _, d := range data {
+
+					switch d.Status {
+
+					case "Failed":
+						message := fmt.Sprintf(
+							`Deposit - Failed
+						
+						Crm ID:            %s
+						Name:              %s
+						Country:           %s
+						Email:             %s
+						Amount:             %.2f
+						Aff id:            %s`,
+							d.LeadGUID,
+							"",
+							"",
+							e.Email,
+							d.Amount,
+							e.AffiliateID,
+						)
+
+						if err := c.utils.SendNotificationToSlack(gCtx, models.FailedDeposit, message); err != nil {
+							log.Println(err)
+							continue
+						}
+
+					case "Complete":
+						message := fmt.Sprintf(
+							`Deposit - successful
+						
+						Crm ID:            %s
+						Name:              %s
+						Country:           %s
+						Email:             %s
+						Amount:             %.2f
+						Aff id:            %s`,
+							d.LeadGUID,
+							"",
+							"",
+							e.Email,
+							d.Amount,
+							e.AffiliateID,
+						)
+
+						if err := c.utils.SendNotificationToSlack(gCtx, models.SuccessfullDeposit, message); err != nil {
+							log.Println(err)
+							continue
+						}
+
+					default:
+						continue
+					}
+
+				}
+
+			}()
 
 			if err := c.store.SaveTransactionsAndUpdateBalanceDeposit(ctx, data, e.Email, e.AffiliateID); err != nil {
 				log.Println(err)

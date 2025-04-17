@@ -3,8 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
+	"time"
 	"top1affiliate/internal/models"
 	"top1affiliate/internal/store"
+	"top1affiliate/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,10 +27,11 @@ type AdminService interface {
 
 type adminSevice struct {
 	store store.AdminStore
+	utils utils.Utils
 }
 
-func NewAdminService(store store.AdminStore) AdminService {
-	return &adminSevice{store: store}
+func NewAdminService(store store.AdminStore, utils utils.Utils) AdminService {
+	return &adminSevice{store: store, utils: utils}
 }
 
 func (s *adminSevice) AdminLogin(ctx context.Context, payload models.LoginRequest) (*models.Admin, error) {
@@ -137,9 +142,42 @@ func (s *adminSevice) DeclinePayout(ctx context.Context, id string) error {
 
 func (s *adminSevice) ApprovePayout(ctx context.Context, id string, amount float64) error {
 
-	if err := s.store.ApprovePayout(ctx, id, amount); err != nil {
+	userId, err := s.store.ApprovePayout(ctx, id, amount)
+
+	if err != nil {
 		return err
 	}
+
+	go func() {
+
+		gCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		user, err := s.store.GetAffiliate(gCtx, userId)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		message := fmt.Sprintf(
+			`Withdrawal successfull
+	
+	Crm ID:            %s
+	Name:              %s
+	Country:           %s
+	Amount:            %.2f`,
+			user.AffiliateID,
+			user.Name,
+			user.Country,
+			amount,
+		)
+
+		if err := s.utils.SendNotificationToSlack(gCtx, models.WithdrawalSuccessfull, message); err != nil {
+			log.Println(err)
+			return
+		}
+	}()
 
 	return nil
 }

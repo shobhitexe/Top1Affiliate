@@ -6,7 +6,7 @@ import AcceptPayout from "./AcceptPayout";
 
 export const payoutsColumn: ColumnDef<unknown>[] = [
   {
-    accessorKey: "#",
+    accessorKey: "iban",
     header: "#",
     cell: ({ row }) => <div>{row.index + 1}</div>,
   },
@@ -27,6 +27,11 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     header: "PAYMENT METHOD",
   },
   {
+    accessorKey: "walletAddress",
+    header: () => <></>,
+    cell: () => <></>,
+  },
+  {
     accessorKey: "amount",
     header: "AMOUNT",
     cell: ({ row }) => {
@@ -40,8 +45,18 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     },
   },
   {
+    accessorKey: "chainName",
+    header: () => <></>,
+    cell: () => <></>,
+  },
+  {
     accessorKey: "type",
     header: "Payout Type",
+  },
+  {
+    accessorKey: "bankName",
+    header: () => <></>,
+    cell: () => <></>,
   },
   {
     accessorKey: "status",
@@ -73,6 +88,11 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
     },
   },
   {
+    accessorKey: "swiftCode",
+    header: () => <></>,
+    cell: () => <></>,
+  },
+  {
     accessorKey: "id",
     header: "Action",
     cell: ({ row }) => {
@@ -84,9 +104,26 @@ export const payoutsColumn: ColumnDef<unknown>[] = [
         return <></>;
       }
 
+      const method = row.getValue("method") as string;
+
+      const iban = row.getValue("iban") as string;
+      const swiftCode = row.getValue("swiftCode") as string;
+      const bankName = row.getValue("bankName") as string;
+      const chainName = row.getValue("chainName") as string;
+      const walletAddress = row.getValue("walletAddress") as string;
+
       return (
         <div className="flex items-center gap-2">
-          <AcceptPayout id={id} amount={amount} />
+          <AcceptPayout
+            id={id}
+            amount={amount}
+            method={method}
+            iban={iban}
+            swiftCode={swiftCode}
+            bankName={bankName}
+            chainName={chainName}
+            walletAddress={walletAddress}
+          />
           <DeclinePayout id={id} />
         </div>
       );

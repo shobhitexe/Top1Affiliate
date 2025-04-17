@@ -92,7 +92,9 @@ export default function RequestPayoutDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Request Payout</DialogTitle>
+          <DialogTitle>
+            {type === "payout" ? "Request Payout" : "Transfer to Trading Acc"}
+          </DialogTitle>
           {!data?.data ? (
             <div className="mt-4">
               Please Update Wallet details before requesting payout in settings

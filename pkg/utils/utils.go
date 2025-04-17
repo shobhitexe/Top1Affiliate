@@ -38,7 +38,7 @@ func (u *utils) SendNotificationToSlack(ctx context.Context, url, message string
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", models.Newregistrations, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

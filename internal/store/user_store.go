@@ -10,6 +10,7 @@ import (
 
 type UserStore interface {
 	GetUserFromID(ctx context.Context, id string) (*models.User, error)
+	GetUser(ctx context.Context, id string) (*models.User, error)
 	RequestPayout(ctx context.Context, payload models.RequestPayout) error
 	GetPayouts(ctx context.Context, id, from, to string) ([]models.Payouts, error)
 	GetWalletDetails(ctx context.Context, id string) (*models.WalletDetails, error)
@@ -38,6 +39,25 @@ func (s *userStore) GetUserFromID(ctx context.Context, id string) (*models.User,
 		&user.Commission,
 		&user.ClientLink,
 		&user.SubLink,
+	); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (s *userStore) GetUser(ctx context.Context, id string) (*models.User, error) {
+
+	var user models.User
+
+	query := `SELECT id, affiliate_id, name, country FROM users WHERE id = $1`
+
+	if err := s.db.QueryRow(ctx, query, id).Scan(
+		&user.ID,
+		&user.AffiliateID,
+		&user.Name,
+		&user.Country,
 	); err != nil {
 		log.Println(err)
 		return nil, err

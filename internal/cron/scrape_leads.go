@@ -53,6 +53,10 @@ func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate s
 		}
 
 		go func() {
+
+			gCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
 			message := fmt.Sprintf(`New Registration
 
 			Crm ID: %s
@@ -69,7 +73,7 @@ func (c *Cron) FetchAndSaveLeads(ctx context.Context, cookie, minDate, maxDate s
 				lead.AffiliateID,
 			)
 
-			if err := c.utils.SendNotificationToSlack(ctx, models.Newregistrations, message); err != nil {
+			if err := c.utils.SendNotificationToSlack(gCtx, models.Newregistrations, message); err != nil {
 				log.Println(err)
 				return
 			}

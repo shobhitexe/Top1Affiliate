@@ -24,7 +24,7 @@ import { Button } from "../ui/button";
 import PayoutsIcon from "./Icons/payouts";
 import CommissionIcon from "./Icons/commission";
 import { AnimatePresence, motion } from "framer-motion";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
@@ -130,13 +130,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className="bg-black text-white p-4 rounded-2xl flex flex-col gap-5 bg-[url('/images/sidebar/Background.png')] bg-cover bg-center">
               <div>
                 <div className="font-semibold">Need help?</div>
-                <div>Please check our docs</div>
+                {/* <div>Please check our docs</div> */}
               </div>
-              <Button
-                className="w-full"
-                variant={"secondary"}
-                onClick={() => signOut()}
-              >
+              <Button className="w-full" variant={"secondary"}>
                 Support
               </Button>
             </div>

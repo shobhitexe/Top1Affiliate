@@ -13,8 +13,6 @@ const Tabs = [
 export default function PayoutTabs() {
   const pathname = usePathname();
 
-  console.log(pathname);
-
   return (
     <div className="flex items-center gap-2">
       {Tabs.map((item) => (

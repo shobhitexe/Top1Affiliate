@@ -32,6 +32,12 @@ type Payouts struct {
 	Status      string  `json:"status"`
 	Method      string  `json:"method"`
 	CreatedAt   string  `json:"createdAt"`
+
+	IBAN          string `json:"iban"`
+	SwiftCode     string `json:"swiftCode"`
+	BankName      string `json:"bankName"`
+	ChainName     string `json:"chainName"`
+	WalletAddress string `json:"walletAddress"`
 }
 
 type RequestPayout struct {
