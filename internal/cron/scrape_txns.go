@@ -74,13 +74,13 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 						message := fmt.Sprintf(
 							`Deposit - Failed
 						
-						Crm ID:            %s
+						Crm ID:            %d
 						Name:              %s
 						Country:           %s
 						Email:             %s
 						Amount:             %.2f
 						Aff id:            %s`,
-							d.LeadGUID,
+							d.LeadID,
 							"",
 							"",
 							e.Email,
@@ -97,13 +97,13 @@ func (c *Cron) FetchAndSaveTransactionsDeposit(ctx context.Context, cookie strin
 						message := fmt.Sprintf(
 							`Deposit - successful
 						
-						Crm ID:            %s
+						Crm ID:            %d
 						Name:              %s
 						Country:           %s
 						Email:             %s
 						Amount:             %.2f
 						Aff id:            %s`,
-							d.LeadGUID,
+							d.LeadID,
 							"",
 							"",
 							e.Email,
